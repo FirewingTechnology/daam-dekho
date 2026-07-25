@@ -1,0 +1,122 @@
+import React, { createContext, useContext, useState } from "react";
+
+const CompareContext = createContext();
+
+// Track which products are currently being added to prevent race conditions
+const addingProductIds = new Set();
+
+export const CompareProvider = ({ children }) => {
+  // In-memory only - no localStorage persistence
+  const [compareList, setCompareList] = useState([]);
+
+  const getMasterId = (product) => {
+    if (!product) return "";
+    return String(product._id || product.id || product.product_id || product.slug || "").trim().toLowerCase();
+  };
+
+  const addToCompare = async (product) => {
+    if (!product) return;
+
+    const masterId = getMasterId(product);
+    if (!masterId) return;
+
+    if (addingProductIds.has(masterId)) return;
+    addingProductIds.add(masterId);
+
+    try {
+      if (compareList.some((p) => getMasterId(p) === masterId)) {
+        console.log(`[CompareContext] Product ${masterId} already in compare list, skipping duplicate`);
+        return;
+      }
+
+      if (compareList.length >= 4) {
+        console.warn(`[CompareContext] List full (${compareList.length}), cannot add ${masterId}`);
+        return;
+      }
+      
+      let fullProduct = { ...product, _id: masterId, id: masterId };
+      
+      if (!product.vendors || Array.isArray(product.vendors) || !product.specifications) {
+        try {
+          const slug = product.slug || product.id || masterId;
+          if (slug) {
+            const res = await fetch(`http://localhost:8001/api/products/${slug}`);
+            if (res.ok) {
+              const data = await res.json();
+              const productData = Array.isArray(data) ? data[0] : data;
+              if (productData) {
+                fullProduct = {
+                  ...fullProduct,
+                  ...productData,
+                  _id: masterId,
+                  id: masterId,
+                };
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching full product details for compare:", error);
+        }
+      }
+
+      setCompareList((currentList) => {
+        if (currentList.some((p) => getMasterId(p) === masterId)) {
+          return currentList;
+        }
+
+        if (currentList.length >= 4) {
+          return currentList;
+        }
+
+        console.log(`[CompareContext] ✅ Added unique master product ${masterId} (total: ${currentList.length + 1})`);
+        return [...currentList, fullProduct];
+      });
+    } finally {
+      setTimeout(() => {
+        addingProductIds.delete(masterId);
+      }, 300);
+    }
+  };
+
+  const removeFromCompare = (productId) => {
+    const targetId = String(productId || "").trim().toLowerCase();
+    setCompareList((currentList) => {
+      const filtered = currentList.filter((p) => getMasterId(p) !== targetId);
+      console.log(`[CompareContext] Removed ${targetId} (remaining: ${filtered.length})`);
+      return filtered;
+    });
+  };
+
+  const clearCompare = () => {
+    setCompareList([]);
+    console.log("[CompareContext] Cleared all comparisons");
+  };
+
+  const isInCompare = (productId) => {
+    const targetId = String(productId || "").trim().toLowerCase();
+    return compareList.some((p) => getMasterId(p) === targetId);
+  };
+
+
+  return (
+    <CompareContext.Provider
+      value={{
+        compareList,
+        addToCompare,
+        removeFromCompare,
+        clearCompare,
+        isInCompare,
+      }}
+    >
+      {children}
+    </CompareContext.Provider>
+  );
+};
+
+export const useCompare = () => {
+  const context = useContext(CompareContext);
+  if (!context) {
+    throw new Error("useCompare must be used within CompareProvider");
+  }
+  return context;
+};

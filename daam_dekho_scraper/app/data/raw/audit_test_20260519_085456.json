@@ -1,0 +1,176 @@
+[
+  {
+    "id": 193118486,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 74999.0,
+    "discounted_price": 64999.0,
+    "rating": 4.4,
+    "reviews": 3812,
+    "seller_name": "Amazon",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.amazon.com/0.jpg"
+    ],
+    "product_link": "https://amazon.com/s24-0",
+    "offers": [],
+    "vendor": "amazon",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  },
+  {
+    "id": 169582520,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 75099.0,
+    "discounted_price": 65099.0,
+    "rating": 4.4,
+    "reviews": 3822,
+    "seller_name": "Flipkart",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.flipkart.com/1.jpg"
+    ],
+    "product_link": "https://flipkart.com/s24-1",
+    "offers": [],
+    "vendor": "flipkart",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  },
+  {
+    "id": 335097411,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 75199.0,
+    "discounted_price": 65199.0,
+    "rating": 4.4,
+    "reviews": 3832,
+    "seller_name": "Croma",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.croma.com/2.jpg"
+    ],
+    "product_link": "https://croma.com/s24-2",
+    "offers": [],
+    "vendor": "croma",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  },
+  {
+    "id": 683706022,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 75299.0,
+    "discounted_price": 65299.0,
+    "rating": 4.4,
+    "reviews": 3842,
+    "seller_name": "JioMart",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.jiomart.com/3.jpg"
+    ],
+    "product_link": "https://jiomart.com/s24-3",
+    "offers": [],
+    "vendor": "jiomart",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  },
+  {
+    "id": 316248232,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 75399.0,
+    "discounted_price": 65399.0,
+    "rating": 4.4,
+    "reviews": 3852,
+    "seller_name": "Vijay Sales",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.vijaysales.com/4.jpg"
+    ],
+    "product_link": "https://vijaysales.com/s24-4",
+    "offers": [],
+    "vendor": "vijaysales",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  },
+  {
+    "id": 169582520,
+    "title": "Samsung Galaxy S24",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "price": 75099.0,
+    "discounted_price": 65099.0,
+    "rating": 4.4,
+    "reviews": 3822,
+    "seller_name": "Flipkart",
+    "availability": "In Stock",
+    "specifications": {
+      "ram": "N/A",
+      "rom": "N/A",
+      "camera": "N/A",
+      "display": "N/A",
+      "battery": "N/A",
+      "processor": "N/A"
+    },
+    "image_urls": [
+      "https://cdn.flipkart.com/1.jpg"
+    ],
+    "product_link": "https://unique-extra.com",
+    "offers": [],
+    "vendor": "flipkart",
+    "scraped_at": "2026-05-19 08:54:56",
+    "created_at": "2026-05-19 08:54:56",
+    "updated_at": "2026-05-19 08:54:56"
+  }
+]

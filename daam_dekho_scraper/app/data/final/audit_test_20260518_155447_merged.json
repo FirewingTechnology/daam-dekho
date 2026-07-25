@@ -1,0 +1,99 @@
+[
+  {
+    "master_title": "Samsung Galaxy S24 5G 256GB",
+    "brand": "Samsung",
+    "category": "Mobile",
+    "vendors": [
+      {
+        "id": 556845152,
+        "title": "Samsung Galaxy S24 5G 256GB",
+        "brand": "Samsung",
+        "category": "Mobile",
+        "price": 74999.0,
+        "discounted_price": 64999.0,
+        "rating": 4.4,
+        "reviews": 3812,
+        "seller_name": "Amazon",
+        "availability": "In Stock",
+        "specifications": {
+          "ram": "N/A",
+          "rom": "256 GB",
+          "camera": "N/A",
+          "display": "N/A",
+          "battery": "N/A",
+          "processor": "N/A"
+        },
+        "image_urls": [],
+        "product_link": "https://a.com/1",
+        "offers": [],
+        "vendor": "amazon",
+        "scraped_at": "2026-05-18 15:54:47",
+        "created_at": "2026-05-18 15:54:47",
+        "updated_at": "2026-05-18 15:54:47"
+      },
+      {
+        "id": 455986387,
+        "title": "Samsung Galaxy S24 256GB 5G",
+        "brand": "Samsung",
+        "category": "Mobile",
+        "price": 73999.0,
+        "discounted_price": 63999.0,
+        "rating": 4.3,
+        "reviews": 2100,
+        "seller_name": "Flipkart",
+        "availability": "In Stock",
+        "specifications": {
+          "ram": "N/A",
+          "rom": "256 GB",
+          "camera": "N/A",
+          "display": "N/A",
+          "battery": "N/A",
+          "processor": "N/A"
+        },
+        "image_urls": [],
+        "product_link": "https://f.com/1",
+        "offers": [],
+        "vendor": "flipkart",
+        "scraped_at": "2026-05-18 15:54:47",
+        "created_at": "2026-05-18 15:54:47",
+        "updated_at": "2026-05-18 15:54:47"
+      }
+    ],
+    "offers": []
+  },
+  {
+    "master_title": "Apple iPhone 15 Pro Max",
+    "brand": "Apple",
+    "category": "Mobile",
+    "vendors": [
+      {
+        "id": 214384248,
+        "title": "Apple iPhone 15 Pro Max",
+        "brand": "Apple",
+        "category": "Mobile",
+        "price": 134999.0,
+        "discounted_price": 129999.0,
+        "rating": 4.7,
+        "reviews": 900,
+        "seller_name": "Croma",
+        "availability": "In Stock",
+        "specifications": {
+          "ram": "N/A",
+          "rom": "N/A",
+          "camera": "N/A",
+          "display": "N/A",
+          "battery": "N/A",
+          "processor": "N/A"
+        },
+        "image_urls": [],
+        "product_link": "https://c.com/2",
+        "offers": [],
+        "vendor": "croma",
+        "scraped_at": "2026-05-18 15:54:47",
+        "created_at": "2026-05-18 15:54:47",
+        "updated_at": "2026-05-18 15:54:47"
+      }
+    ],
+    "offers": []
+  }
+]

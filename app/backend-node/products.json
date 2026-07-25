@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Apple iPhone 14 Pro",
+    "brand": "Apple",
+    "price": 119999,
+    "category": "Mobile",
+    "source": "amazon"
+  },
+  {
+    "title": "Samsung Galaxy S23",
+    "brand": "Samsung",
+    "price": 74999,
+    "category": "Mobile",
+    "source": "flipkart"
+  },
+  {
+    "title": "OnePlus 11 5G",
+    "brand": "OnePlus",
+    "price": 56999,
+    "category": "Mobile",
+    "source": "myntra"
+  },
+  {
+    "title": "Dell Inspiron 15 Laptop",
+    "brand": "Dell",
+    "price": 45990,
+    "category": "Laptop",
+    "source": "amazon"
+  },
+  {
+    "title": "Sony WH-1000XM5 Headphones",
+    "brand": "Sony",
+    "price": 29990,
+    "category": "Electronics",
+    "source": "croma"
+  }
+]

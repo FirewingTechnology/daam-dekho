@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-07-25T18:18:27.739872",
+  "total_master_products": 155,
+  "total_vendor_offers": 225,
+  "average_vendors_per_product": 1.5,
+  "overall_coverage_percent": 29.0,
+  "vendor_distribution": {
+    "Amazon": 19,
+    "Flipkart": 13,
+    "Croma": 6,
+    "JioMart": 106,
+    "Vijay Sales": 81,
+    "Reliance Digital": 0
+  },
+  "data_quality": {
+    "broken_images": 0,
+    "broken_urls": 0,
+    "foreign_key_errors": 5
+  },
+  "recommendations": [
+    "Maintain automated daily re-scraping loop for vendors with < 5 offers.",
+    "Enforce >= 700x700px image resolution checks on all new incoming catalog items."
+  ]
+}

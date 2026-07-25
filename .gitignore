@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database & log files
+*.db
+*.db-shm
+*.db-wal
+*.log
+scraper.log
+
+# Build & Dist
+dist/
+build/
+.next/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Scraping dumps & temporary artifacts
+vendor_screenshots/
+scratch/
+*.html
+*.png
+jiomart_items.json
