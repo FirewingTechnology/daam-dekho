@@ -39,6 +39,9 @@ Thumbs.db
 # Scraping dumps & temporary artifacts
 vendor_screenshots/
 scratch/
-*.html
+amazon_test.html
+debug_jiomart.html
+jiomart_results.html
+!index.html
 *.png
 jiomart_items.json

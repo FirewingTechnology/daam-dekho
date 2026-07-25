@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaamDekho v1.0 | Enterprise Admin Control Center</title>
+    <!-- Modern Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Glassmorphism Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-app-container">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <i class="fas fa-bolt-lightning"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>Daam<span>Dekho</span></h2>
+                    <span class="badge-v1">v1.0 Enterprise</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Core Operations</div>
+                <a href="#dashboard" class="nav-link active" data-tab="dashboard">
+                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
+                </a>
+                <a href="#products" class="nav-link" data-tab="products">
+                    <i class="fas fa-boxes-stacked"></i> <span>Products</span>
+                </a>
+                <a href="#categories" class="nav-link" data-tab="categories">
+                    <i class="fas fa-layer-group"></i> <span>Categories</span>
+                </a>
+                <a href="#brands" class="nav-link" data-tab="brands">
+                    <i class="fas fa-copyright"></i> <span>Brands</span>
+                </a>
+
+                <div class="nav-section-label">Scraper & Data Pipeline</div>
+                <a href="#scraper-center" class="nav-link" data-tab="scraper-center">
+                    <i class="fas fa-spider"></i> <span>Scraper Center</span>
+                </a>
+                <a href="#scraper-progress" class="nav-link" data-tab="scraper-progress">
+                    <i class="fas fa-bars-progress"></i> <span>Scraper Progress</span>
+                </a>
+                <a href="#vendor-coverage" class="nav-link" data-tab="vendor-coverage">
+                    <i class="fas fa-network-wired"></i> <span>Vendor Coverage</span>
+                </a>
+                <a href="#image-validation" class="nav-link" data-tab="image-validation">
+                    <i class="fas fa-images"></i> <span>Image Validation</span>
+                </a>
+                <a href="#url-validation" class="nav-link" data-tab="url-validation">
+                    <i class="fas fa-link-slash"></i> <span>Vendor URLs</span>
+                </a>
+                <a href="#spec-quality" class="nav-link" data-tab="spec-quality">
+                    <i class="fas fa-list-check"></i> <span>Spec Quality</span>
+                </a>
+
+                <div class="nav-section-label">System & Intelligence</div>
+                <a href="#analytics" class="nav-link" data-tab="analytics">
+                    <i class="fas fa-chart-column"></i> <span>Analytics</span>
+                </a>
+                <a href="#logs" class="nav-link" data-tab="logs">
+                    <i class="fas fa-terminal"></i> <span>Live Logs</span>
+                </a>
+                <a href="#settings" class="nav-link" data-tab="settings">
+                    <i class="fas fa-sliders"></i> <span>Settings</span>
+                </a>
+                <a href="#system-health" class="nav-link" data-tab="system-health">
+                    <i class="fas fa-heart-pulse"></i> <span>System Health</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="db-health-mini">
+                    <div class="health-label">
+                        <span>Database WAL</span>
+                        <strong id="sidebar-db-size">0.0 MB</strong>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN VIEW CONTENT AREA -->
+        <main class="main-content">
+            <!-- TOPBAR HEADER -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-sidebar-toggle" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                    <h1 id="page-title">Dashboard Overview</h1>
+                </div>
+
+                <div class="topbar-right">
+                    <button class="theme-toggle-btn" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <div class="scraper-status-pill" id="global-scraper-pill">
+                        <span class="pulse-dot"></span>
+                        <span id="global-scraper-text">Scraper Idle</span>
+                    </div>
+                    <div class="user-profile-badge">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff&bold=true" alt="Admin">
+                        <div class="user-info">
+                            <span class="user-name">Administrator</span>
+                            <span class="user-role">Super Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TOAST NOTIFICATION CONTAINER -->
+            <div id="toast-container"></div>
+
+            <!-- MODULE 1: DASHBOARD VIEW -->
+            <section id="view-dashboard" class="tab-view active">
+                <div class="stats-cards-grid">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon blue"><i class="fas fa-box-open"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Total Products</span>
+                            <h2 class="stat-value" id="dash-total-products">0</h2>
+                            <span class="stat-sub text-success"><i class="fas fa-arrow-up"></i> Live Sync</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon purple"><i class="fas fa-tags"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Vendor Listings</span>
+                            <h2 class="stat-value" id="dash-total-listings">0</h2>
+                            <span class="stat-sub">Across 5 Vendors</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon green"><i class="fas fa-folder-tree"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Categories</span>
+                            <h2 class="stat-value" id="dash-total-categories">0</h2>
+                            <span class="stat-sub">Active Master Specs</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon orange"><i class="fas fa-star"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Quality Score</span>
+                            <h2 class="stat-value" id="dash-quality-score">0%</h2>
+                            <span class="stat-sub text-info">Catalog Completeness</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid-2">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-list-check"></i> Quality & Audit Breakdown</h3>
+                            <button class="btn-sm btn-outline" id="dash-refresh-btn"><i class="fas fa-rotate"></i> Refresh</button>
+                        </div>
+                        <div class="audit-list">
+                            <div class="audit-item">
+                                <span class="audit-label"><i class="fas fa-image text-danger"></i> Missing Images</span>
+                                <strong class="audit-value text-danger" id="dash-missing-images">0</strong>
+                            </div>
+                            <div class="audit-item">
+                                <span class="audit-label"><i class="fas fa-link-slash text-warning"></i> Broken Vendor URLs</span>
+                                <strong class="audit-value text-warning" id="dash-broken-urls">0</strong>
+                            </div>
+                            <div class="audit-item">
+                                <span class="audit-label"><i class="fas fa-microchip text-info"></i> Products Missing Specs</span>
+                                <strong class="audit-value text-info" id="dash-missing-specs">0</strong>
+                            </div>
+                            <div class="audit-item">
+                                <span class="audit-label"><i class="fas fa-star-half-stroke text-purple"></i> Missing Ratings/Reviews</span>
+                                <strong class="audit-value text-purple" id="dash-missing-ratings">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> System Health & Storage</h3>
+                        </div>
+                        <div class="health-metrics-list">
+                            <div class="health-row">
+                                <span>SQLite DB Size</span>
+                                <strong id="dash-db-size">0.0 MB</strong>
+                            </div>
+                            <div class="health-row">
+                                <span>Last Scrape Execution</span>
+                                <strong id="dash-last-scrape">Never</strong>
+                            </div>
+                            <div class="health-row">
+                                <span>Last Automated Backup</span>
+                                <strong id="dash-last-backup">N/A</strong>
+                            </div>
+                            <div class="health-row">
+                                <span>Backend API Latency</span>
+                                <span class="badge badge-success">0.00 ms (⚡ Sub-10ms)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: PRODUCTS MANAGEMENT VIEW -->
+            <section id="view-products" class="tab-view">
+                <div class="toolbar-glass glass-card">
+                    <div class="toolbar-row">
+                        <div class="search-input-group">
+                            <i class="fas fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="product-search" placeholder="Search by title, brand, or SKU...">
+                        </div>
+                        <div class="toolbar-filters">
+                            <select id="product-cat-filter" class="form-select">
+                                <option value="">All Categories</option>
+                            </select>
+                            <select id="product-brand-filter" class="form-select">
+                                <option value="">All Brands</option>
+                            </select>
+                            <select id="product-sort-select" class="form-select">
+                                <option value="id_desc">Newest First</option>
+                                <option value="title_asc">Title (A-Z)</option>
+                                <option value="price_asc">Price (Low to High)</option>
+                                <option value="price_desc">Price (High to Low)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <div class="bulk-actions">
+                            <input type="checkbox" id="select-all-products">
+                            <span id="selected-count">0 selected</span>
+                            <button class="btn-danger btn-sm" id="btn-bulk-delete" disabled><i class="fas fa-trash"></i> Bulk Delete</button>
+                        </div>
+                        <div class="export-actions">
+                            <button class="btn-outline btn-sm" id="btn-export-csv"><i class="fas fa-file-csv"></i> Export CSV</button>
+                            <button class="btn-outline btn-sm" id="btn-export-json"><i class="fas fa-file-code"></i> Export JSON</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCTS DATA TABLE -->
+                <div class="table-container glass-card">
+                    <table class="data-table" id="products-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>Product</th>
+                                <th>Category / Brand</th>
+                                <th>Price Range</th>
+                                <th>Vendors</th>
+                                <th>Quality Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-footer">
+                        <span id="pagination-info">Showing 0-0 of 0 items</span>
+                        <div class="pagination-controls">
+                            <button class="btn-icon" id="btn-prev-page" disabled><i class="fas fa-chevron-left"></i></button>
+                            <span id="current-page-num">1</span>
+                            <button class="btn-icon" id="btn-next-page" disabled><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 3 & 4: CATEGORIES & BRANDS -->
+            <section id="view-categories" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-layer-group"></i> Active Product Categories</h3>
+                    </div>
+                    <div class="categories-grid" id="categories-container"></div>
+                </div>
+            </section>
+
+            <section id="view-brands" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-copyright"></i> Active Brands Catalog</h3>
+                    </div>
+                    <div class="brands-grid" id="brands-container"></div>
+                </div>
+            </section>
+
+            <!-- MODULE 5: SCRAPER CENTER -->
+            <section id="view-scraper-center" class="tab-view">
+                <div class="scraper-control-deck glass-card">
+                    <h3><i class="fas fa-sliders-h"></i> Ingestion & Scraping Control Deck</h3>
+
+                    <div class="form-group margin-bottom">
+                        <label>Target Query</label>
+                        <input type="text" id="scraper-query" value="iphone" placeholder="e.g. Samsung Galaxy, MacBook Pro...">
+                    </div>
+
+                    <div class="vendor-checkbox-grid margin-bottom">
+                        <label class="vendor-checkbox-item"><input type="checkbox" value="amazon" checked> <i class="fab fa-amazon"></i> Amazon</label>
+                        <label class="vendor-checkbox-item"><input type="checkbox" value="flipkart" checked> <i class="fas fa-shopping-bag"></i> Flipkart</label>
+                        <label class="vendor-checkbox-item"><input type="checkbox" value="croma" checked> <i class="fas fa-store"></i> Croma</label>
+                        <label class="vendor-checkbox-item"><input type="checkbox" value="jiomart" checked> <i class="fas fa-basket-shopping"></i> JioMart</label>
+                        <label class="vendor-checkbox-item"><input type="checkbox" value="vijaysales" checked> <i class="fas fa-tv"></i> VijaySales</label>
+                    </div>
+
+                    <div class="scraper-buttons-grid">
+                        <button class="btn-primary" id="btn-trigger-scrape"><i class="fas fa-play"></i> Start Scrape</button>
+                        <button class="btn-danger" id="btn-stop-scrape"><i class="fas fa-stop"></i> Stop Scraper</button>
+                        <button class="btn-warning" id="btn-normalize-catalog"><i class="fas fa-wand-magic-sparkles"></i> Normalize Catalog</button>
+                        <button class="btn-info" id="btn-rebuild-catalog"><i class="fas fa-rotate"></i> Rebuild Catalog</button>
+                        <button class="btn-success" id="btn-backup-db"><i class="fas fa-download"></i> Backup DB</button>
+                        <button class="btn-danger-outline" id="btn-clear-db"><i class="fas fa-trash-can"></i> Clear Database</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 6: SCRAPER PROGRESS -->
+            <section id="view-scraper-progress" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bars-progress"></i> Real-time Scraper Execution Monitor</h3>
+                        <span class="badge badge-success" id="scraper-stage-badge">Ready</span>
+                    </div>
+
+                    <div class="scraper-status-banner margin-bottom">
+                        <div class="progress-bar lg"><div class="progress-fill" id="scraper-progress-bar" style="width: 0%"></div></div>
+                        <div class="status-meta" style="margin-top: 0.8rem;">
+                            <span id="scraper-job-type">Job: Idle</span>
+                            <span id="scraper-stage-text">Stage: Ready</span>
+                            <span id="scraper-eta">ETA: Ready</span>
+                        </div>
+                    </div>
+
+                    <!-- Process Performance & Real-Time Product Metrics -->
+                    <div class="health-grid margin-bottom" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.8rem;">
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">PROCESS PID</span>
+                            <h4 id="proc-pid" style="font-size: 1.1rem; margin-top: 2px;">N/A</h4>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">EXIT STATUS</span>
+                            <h4 id="proc-exit-status" style="font-size: 0.95rem; margin-top: 2px;">N/A</h4>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">MEMORY USAGE</span>
+                            <h4 id="proc-mem" style="font-size: 1.1rem; margin-top: 2px;">0.0 MB</h4>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">START / END TIME</span>
+                            <h4 id="proc-timing" style="font-size: 0.85rem; margin-top: 2px;">16:30:10 → 16:34:42</h4>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">ELAPSED RUNTIME</span>
+                            <h4 id="proc-runtime" style="font-size: 1.1rem; margin-top: 2px;">0s</h4>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: var(--text-dim);">PRODUCTS FOUND</span>
+                            <h4 id="proc-found" style="font-size: 1.1rem; margin-top: 2px; color: var(--primary);">0</h4>
+                        </div>
+                    </div>
+
+                    <!-- Live Real-Time Product Metrics -->
+                    <div class="health-grid margin-bottom" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem;">
+                        <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: #4ade80;">IMPORTED PRODUCTS</span>
+                            <h4 id="proc-imported" style="font-size: 1.1rem; margin-top: 2px; color: #22c55e;">0</h4>
+                        </div>
+                        <div style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: #38bdf8;">UPDATED OFFERS</span>
+                            <h4 id="proc-updated" style="font-size: 1.1rem; margin-top: 2px; color: #0284c7;">0</h4>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: #f87171;">REJECTED PRODUCTS</span>
+                            <h4 id="proc-rejected" style="font-size: 1.1rem; margin-top: 2px; color: #ef4444;">0</h4>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: #fbbf24;">DUPLICATES MERGED</span>
+                            <h4 id="proc-duplicates" style="font-size: 1.1rem; margin-top: 2px; color: #f59e0b;">0</h4>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); padding: 0.8rem; border-radius: 12px;">
+                            <span style="font-size: 0.7rem; color: #c084fc;">IMAGES DOWNLOADED</span>
+                            <h4 id="proc-images" style="font-size: 1.1rem; margin-top: 2px; color: #a855f7;">0</h4>
+                        </div>
+                    </div>
+
+                    <!-- Execution Summary Card (Appears after completion) -->
+                    <div id="scraper-summary-card" style="display: none; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; padding: 1.2rem; border-radius: 16px; margin-bottom: 1.5rem;">
+                        <h4 style="color: #22c55e; margin-bottom: 0.8rem; font-size: 1rem;"><i class="fas fa-circle-check"></i> Scraper Execution Summary Report</h4>
+                        <div id="summary-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <!-- Persistent Last Run Summary Card -->
+                    <div id="last-run-info-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 14px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim);"><i class="fas fa-clock-rotate-left"></i> LAST SCRAPER EXECUTION SUMMARY</span>
+                            <span class="badge badge-info" id="last-run-status-badge">Idle</span>
+                        </div>
+                        <div id="last-run-details" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-top: 0.6rem; font-size: 0.85rem;">
+                            <div>Status: <strong id="lr-status">Never</strong></div>
+                            <div>Products: <strong id="lr-products">0</strong></div>
+                            <div>Runtime: <strong id="lr-runtime">0s</strong></div>
+                            <div>Completed: <strong id="lr-completed">N/A</strong></div>
+                            <div>Process PID: <strong id="lr-pid">N/A</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Crash / Error Recovery Traceback Card -->
+                    <div id="scraper-error-card" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--danger); padding: 1.2rem; border-radius: 16px; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--danger); margin-bottom: 0.5rem;"><i class="fas fa-triangle-exclamation"></i> Job Failure & Python Traceback</h4>
+                        <pre id="scraper-error-traceback" style="font-family: var(--font-mono); font-size: 0.82rem; color: #f87171; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto;"></pre>
+                    </div>
+
+                    <div class="logs-terminal-card margin-top">
+                        <div class="log-header">
+                            <span><i class="fas fa-terminal"></i> Activity Log Stream</span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-sm btn-outline" id="btn-toggle-log-view"><i class="fas fa-eye"></i> Mode: Client View</button>
+                                <button class="btn-sm btn-outline" id="btn-copy-logs"><i class="fas fa-copy"></i> Copy Logs</button>
+                                <button class="btn-sm btn-outline" id="btn-download-logs"><i class="fas fa-download"></i> Download Logs</button>
+                                <button class="btn-sm btn-outline" id="btn-clear-terminal"><i class="fas fa-eraser"></i> Clear Terminal</button>
+                            </div>
+                        </div>
+                        <div class="log-terminal" id="live-terminal-container">
+                            <div class="log-entry system">[SYSTEM] Supervisor ready.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: VENDOR COVERAGE VIEW -->
+            <section id="view-vendor-coverage" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-network-wired text-primary"></i> Multi-Vendor Coverage Matrix</h3>
+                        <button class="btn-outline btn-sm" id="btn-refresh-coverage"><i class="fas fa-rotate"></i> Refresh Coverage Audit</button>
+                    </div>
+
+                    <div id="coverage-summary-metrics" class="health-grid margin-bottom" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;"></div>
+
+                    <div class="table-container margin-top">
+                        <table class="data-table" id="vendor-coverage-table">
+                            <thead>
+                                <tr>
+                                    <th>Master Product</th>
+                                    <th>Amazon</th>
+                                    <th>Flipkart</th>
+                                    <th>Croma</th>
+                                    <th>JioMart</th>
+                                    <th>Vijay Sales</th>
+                                    <th>Coverage %</th>
+                                    <th>Rejection / Status Rationale</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendor-coverage-tbody">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 7, 8, 9: VALIDATION MODULES -->
+            <section id="view-image-validation" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-image text-info"></i> Catalog Image Health Auditor</h3>
+                        <button class="btn-primary btn-sm" id="btn-run-image-audit"><i class="fas fa-wrench"></i> Auto-Fix Missing Images</button>
+                    </div>
+                    <div id="image-audit-results">Loading audit stats...</div>
+                </div>
+            </section>
+
+            <section id="view-url-validation" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-link text-warning"></i> Vendor Offer URLs Health Monitor</h3>
+                    </div>
+                    <div id="url-audit-results">Auditing vendor URLs...</div>
+                </div>
+            </section>
+
+            <section id="view-spec-quality" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-check text-success"></i> Hardware Specification Quality Matrix</h3>
+                    </div>
+                    <div id="spec-audit-results">Analyzing specification keys...</div>
+                </div>
+            </section>
+
+            <!-- MODULE 10: ANALYTICS -->
+            <section id="view-analytics" class="tab-view">
+                <div class="analytics-grid">
+                    <div class="glass-card">
+                        <h3>Products Per Category</h3>
+                        <canvas id="chart-categories"></canvas>
+                    </div>
+                    <div class="glass-card">
+                        <h3>Top Brands Distribution</h3>
+                        <canvas id="chart-brands"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 11: LOGS -->
+            <section id="view-logs" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-terminal"></i> System Activity Logs</h3>
+                        <button class="btn-sm btn-outline" id="btn-toggle-full-log-view"><i class="fas fa-eye"></i> Mode: Client View</button>
+                    </div>
+                    <div class="log-terminal lg" id="full-logs-container">
+                        Loading activity logs...
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 12: SETTINGS & SYSTEM HEALTH -->
+            <section id="view-settings" class="tab-view">
+                <div class="glass-card max-w-700">
+                    <h3><i class="fas fa-sliders"></i> Scraper & Engine Configuration</h3>
+                    <form id="settings-form" class="margin-top">
+                        <div class="form-group">
+                            <label>Scraper Request Delay (seconds)</label>
+                            <input type="number" step="0.5" id="setting-delay" class="form-input" value="2.0">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Concurrency Worker Threads</label>
+                            <input type="number" id="setting-concurrency" class="form-input" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label>HTTP Retry Attempts</label>
+                            <input type="number" id="setting-retry" class="form-input" value="3">
+                        </div>
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="view-system-health" class="tab-view">
+                <div class="glass-card">
+                    <h3><i class="fas fa-heart-pulse text-danger"></i> System Resources & Health</h3>
+                    <div class="health-grid" id="system-health-container">
+                        Loading system diagnostics...
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PRODUCT EDIT MODAL / DRAWER -->
+    <div class="modal-backdrop" id="product-edit-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-to-square"></i> Edit Master Product</h3>
+                <button class="btn-icon" id="btn-close-modal"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-product-form">
+                    <input type="hidden" id="edit-product-id">
+                    <div class="form-group">
+                        <label>Product Title</label>
+                        <input type="text" id="edit-title" class="form-input" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Brand</label>
+                            <input type="text" id="edit-brand" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="edit-category" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Base Image CDN URL</label>
+                        <input type="url" id="edit-image" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Specifications (JSON / Key-Value)</label>
+                        <textarea id="edit-specs-json" class="form-textarea" rows="6"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-outline" id="btn-cancel-edit">Cancel</button>
+                        <button type="submit" class="btn-primary"><i class="fas fa-floppy-disk"></i> Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
