@@ -29,5 +29,3 @@ services:
           type: web
           name: daam-dekho-backend
           property: host
-          envVarKey: VITE_API_BASE_URL
-          # Formats as https://<host>/api
