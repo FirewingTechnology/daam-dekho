@@ -19,6 +19,7 @@ __pycache__/
 
 # Database & log files
 *.db
+!daamdekho.db
 *.db-shm
 *.db-wal
 *.log
