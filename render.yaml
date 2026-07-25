@@ -3,8 +3,9 @@ services:
   - type: web
     name: daam-dekho-backend
     runtime: node
-    buildCommand: cd app/backend-node && npm install
-    startCommand: cd app/backend-node && npm start
+    rootDir: app/backend-node
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,8 +18,9 @@ services:
   - type: web
     name: daam-dekho-frontend
     runtime: static
-    buildCommand: cd app/frontend && npm install && npm run build
-    staticPublishPath: app/frontend/dist
+    rootDir: app/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
