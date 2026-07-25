@@ -43,5 +43,5 @@ amazon_test.html
 debug_jiomart.html
 jiomart_results.html
 !index.html
-*.png
+jiomart_*.png
 jiomart_items.json
