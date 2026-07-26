@@ -9,17 +9,25 @@ from app.config import VENDORS
 logger = get_logger("main")
 
 def main():
-    parser = argparse.ArgumentParser(description="DaamDekho - Production Grade Scraper Pipeline")
+    parser = argparse.ArgumentParser(description="DaamDekho v2.0 - Enterprise Intelligent Multi-Vendor Scraping Architecture")
     
-    # Modes
+    # Modes & Queries
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--query", type=str, help="Search query (e.g. 'iphone 15')")
+    group.add_argument("--query", type=str, help="Target search query (e.g. 'Samsung Galaxy S24 Ultra')")
     group.add_argument("--all", action="store_true", help="Full refresh mode")
     group.add_argument("--price-update", action="store_true", help="Update prices for existing products only")
     
-    # Filters & Info
-    parser.add_argument("--category", type=str, choices=['mobiles', 'laptops', 'accessories'], help="Target category")
-    parser.add_argument("--vendor", type=str, nargs='+', help="Limit to specific vendors (amazon, flipkart, etc.)")
+    # Category & Filters
+    parser.add_argument("--category", type=str, help="Target category (Mobile, Laptop, Mobile Accessories, Laptop Accessories)")
+    parser.add_argument("--vendor", type=str, nargs='+', help="Limit to specific vendors (amazon, flipkart, croma, jiomart, vijaysales)")
+    
+    # Enterprise v2.0 Ingestion Control Options
+    parser.add_argument("--mode", type=str, default="Auto Detect", choices=["Exact Product", "Product Family", "Auto Detect"], help="Scrape mode")
+    parser.add_argument("--deep-scan", action="store_true", help="Enable deep PDP scanning for full spec extraction")
+    parser.add_argument("--validate-images", action="store_true", help="Enforce high-res image validation rules")
+    parser.add_argument("--validate-urls", action="store_true", help="Enforce canonical PDP URL validation rules")
+    parser.add_argument("--merge-vendors", action="store_true", default=True, help="Enable multi-vendor canonical merging")
+    parser.add_argument("--rebuild-existing", action="store_true", help="Rebuild existing catalog items")
     
     args = parser.parse_args()
 
@@ -32,45 +40,28 @@ def main():
         logger.error(f"ChromeDriver setup failed: {e}")
 
     if args.query:
-        logger.info(f"Starting search mode for query: {args.query} (Category: {args.category or 'Auto'}, Vendors: {args.vendor or 'All'})")
-        pipeline.run_search(args.query, category=args.category, vendors=args.vendor) 
+        logger.info(f"Starting v2.0 Ingestion for query: '{args.query}' (Category: {args.category or 'Auto'}, Mode: {args.mode}, Vendors: {args.vendor or 'All'})")
+        pipeline.run_search(args.query, category=args.category, vendors=args.vendor, scrape_mode=args.mode)
     
     elif args.category:
         logger.info(f"Starting category mode for: {args.category}")
-        # In a real app, you'd have a list of keywords for each category
         queries = {
-            'mobiles': [
-                'iphone 15', 'iphone 14', 'iphone 13',
-                'samsung s24', 'samsung s23', 'samsung z fold 5', 'samsung a54',
-                'oneplus 12', 'oneplus 11r', 'oneplus nord 3',
-                'google pixel 8', 'google pixel 7a',
-                'redmi note 13 pro', 'realme 12 pro', 'nothing phone 2'
-            ],
-            'laptops': ['macbook air m3', 'dell xps 13', 'hp spectre x360', 'lenovo legion 5'],
-            'accessories': ['airpods pro', 'samsung buds 2', 'sony wh-1000xm5']
+            'Mobile': ['Samsung Galaxy S24 Ultra', 'iPhone 15 Pro Max', 'OnePlus 12'],
+            'Laptop': ['MacBook Air M3', 'Dell XPS 13', 'Lenovo Legion 5'],
+            'Mobile Accessories': ['AirPods Pro 2', 'Samsung Galaxy Buds 2 Pro'],
+            'Laptop Accessories': ['Logitech MX Master 3S', 'Anker USB-C Hub']
         }
-        for q in queries.get(args.category, []):
-            pipeline.run_search(q, category=args.category)
+        cat_key = args.category.strip()
+        for q in queries.get(cat_key, ['Samsung Galaxy S24 Ultra']):
+            pipeline.run_search(q, category=args.category, scrape_mode=args.mode)
             
-    elif args.price_update:
-        logger.info("Starting price update mode...")
-        # Logic to fetch existing product URLs from DB and re-scrape
-        pass
-        
-    elif args.all:
-        logger.info("Starting full refresh mode...")
-        for cat in ['mobiles', 'laptops']:
-            # Run pre-defined category scrapes
-            pass
-    
     else:
-        # Default behavior: Interactive CLI
-        print("=" * 50)
-        print("   DaamDekho - Admin Product Ingestion Tool")
+        print("=" * 60)
+        print("   DaamDekho v2.0 - Enterprise Multi-Vendor Ingestion Tool")
         print("=" * 50)
         query = input("Enter search query: ").strip()
         if query:
-            pipeline.run_search(query)
+            pipeline.run_search(query, scrape_mode=args.mode)
         else:
             print("No query provided. Exiting.")
 

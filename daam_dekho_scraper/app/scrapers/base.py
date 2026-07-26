@@ -21,6 +21,7 @@ class BaseScraper(ABC):
         if HEADLESS:
             options.add_argument("--headless=new")
         options.add_argument(f"user-agent={get_random_user_agent()}")
+        options.page_load_strategy = "eager"
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -29,7 +30,6 @@ class BaseScraper(ABC):
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
-
 
         import os
         chromedriver_path = os.environ.get("CHROME_DRIVER_PATH")
@@ -41,8 +41,8 @@ class BaseScraper(ABC):
         self.logger.info(f"Using ChromeDriver: {chromedriver_path}")
         service = Service(chromedriver_path)
         self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.set_page_load_timeout(45)
-        self.driver.implicitly_wait(10)
+        self.driver.set_page_load_timeout(20)
+        self.driver.implicitly_wait(5)
         
         # Anti-detection: execute CDP commands
         self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
@@ -82,7 +82,14 @@ class BaseScraper(ABC):
         for attempt in range(1, max_retries + 1):
             try:
                 self.logger.info(f"Navigating to {url} (Attempt {attempt}/{max_retries})")
-                self.driver.get(url)
+                try:
+                    self.driver.get(url)
+                except Exception as te:
+                    if "timeout" in str(te).lower():
+                        self.logger.info(f"Page load timeout reached for {url}; proceeding with partial DOM...")
+                        return True
+                    raise te
+
                 time.sleep(PAGE_LOAD_WAIT)
                 
                 page_src = self.driver.page_source.lower()

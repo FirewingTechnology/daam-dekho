@@ -72,7 +72,7 @@ export const searchProducts = async (filters) => {
   const resolvedSort = sortMap[sort] || 'price_high';
 
   let sql = `
-    SELECT pm.id, pm.title, pm.brand, pm.category, pm.id as slug, pm.base_image, pm.base_image as image_url,
+    SELECT pm.id, COALESCE(pm.canonical_title, pm.title) as title, pm.brand, pm.category, pm.id as slug, pm.base_image, pm.base_image as image_url,
            MIN(vp.price) as discounted_Price, MAX(vp.mrp) as price, MAX(vp.discount_percent) as discount_percent,
            MAX(vp.rating) as rating, MAX(vp.reviews) as reviews,
            COALESCE(srr.priority_weight, 0) as ranking_weight
@@ -96,8 +96,8 @@ export const searchProducts = async (filters) => {
     };
     const keywords = q.trim().split(/\s+/).map(w => typoMap[w.toLowerCase()] || w);
     keywords.forEach(kw => {
-      sql += ` AND (LOWER(pm.title) LIKE LOWER(?) OR LOWER(pm.brand) LIKE LOWER(?))`;
-      params.push(`%${kw}%`, `%${kw}%`);
+      sql += ` AND (LOWER(COALESCE(pm.canonical_title, pm.title)) LIKE LOWER(?) OR LOWER(pm.title) LIKE LOWER(?) OR LOWER(pm.brand) LIKE LOWER(?))`;
+      params.push(`%${kw}%`, `%${kw}%`, `%${kw}%`);
     });
   }
 
@@ -142,6 +142,33 @@ export const searchProducts = async (filters) => {
     case 'latest':     sql += ` ORDER BY pm.created_at DESC`;    break;
     default:           sql += ` ORDER BY ranking_weight DESC, rating DESC, pm.id ASC`;
   }
+
+  const totalSql = `SELECT COUNT(*) as total FROM (${sql}) as _subq`;
+  const totalResult = await get(totalSql, params);
+
+  sql += ` LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+
+  const rawProducts = await query(sql, params);
+  const products = rawProducts.map(p => ({
+    ...p,
+    image_urls: p.base_image ? [p.base_image] : []
+  }));
+
+  return {
+    products,
+    pagination: {
+        total: totalResult.total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(totalResult.total / limit)
+    }
+  };
+};
+
+export const getProductBySlug = async (slug) => {
+  const product = await get(`SELECT *, COALESCE(canonical_title, title) as title, title as raw_vendor_title, id as slug, base_image, base_image as image_url FROM products_master WHERE id = ?`, [slug]);
+
 
 
 

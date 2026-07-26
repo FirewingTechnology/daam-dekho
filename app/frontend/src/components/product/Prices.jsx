@@ -4,11 +4,25 @@ import { safeRender } from "../../utils/renderUtils";
 import { Amazon, Flipkart, Croma, VS } from "../../assets/ImportImages";
 
 const vendorLogos = {
-  amazon: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-  flipkart: "https://logos-world.net/wp-content/uploads/2020/11/Flipkart-Logo.png",
-  croma: "https://i.imgur.com/uC58C3H.png", // Croma colored logo
-  vijaysales: "https://i.imgur.com/B9B1z6K.png", // Vijay Sales
+  amazon: Amazon,
+  flipkart: Flipkart,
+  croma: Croma,
+  vijaysales: VS,
+  "vijay sales": VS,
+  "vijay_sales": VS,
   jiomart: "https://upload.wikimedia.org/wikipedia/commons/9/91/JioMart_logo.png",
+};
+
+const getVendorLogo = (name) => {
+  if (!name) return Amazon;
+  const clean = String(name).toLowerCase().trim();
+  if (vendorLogos[clean]) return vendorLogos[clean];
+  if (clean.includes("vijay")) return VS;
+  if (clean.includes("flipkart")) return Flipkart;
+  if (clean.includes("croma")) return Croma;
+  if (clean.includes("jio")) return vendorLogos.jiomart;
+  if (clean.includes("amazon")) return Amazon;
+  return Amazon;
 };
 
 const Prices = ({ product }) => {
@@ -208,7 +222,7 @@ const Prices = ({ product }) => {
           .sort((a, b) => a.discountPrice - b.discountPrice)
           .map((vendor, index) => {
             const isBest = index === 0;
-            const vendorLogo = vendorLogos[vendor.name.toLowerCase()] || Amazon;
+            const vendorLogo = getVendorLogo(vendor.name);
             const discountPercent = vendor.originalPrice && vendor.discountPrice && vendor.originalPrice > vendor.discountPrice
               ? Math.round(((vendor.originalPrice - vendor.discountPrice) / vendor.originalPrice) * 100)
               : 0;

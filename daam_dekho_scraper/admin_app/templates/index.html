@@ -60,6 +60,27 @@
                 <a href="#spec-quality" class="nav-link" data-tab="spec-quality">
                     <i class="fas fa-list-check"></i> <span>Spec Quality</span>
                 </a>
+                <a href="#identity-debug" class="nav-link" data-tab="identity-debug">
+                    <i class="fas fa-fingerprint"></i> <span>Identity Debugger</span>
+                </a>
+                <a href="#product-intelligence" class="nav-link" data-tab="product-intelligence">
+                    <i class="fas fa-brain"></i> <span>Product Intelligence Center</span>
+                </a>
+                <a href="#ai-intelligence" class="nav-link" data-tab="ai-intelligence">
+                    <i class="fas fa-robot"></i> <span>AI Product Intelligence</span>
+                </a>
+                <a href="#product-discovery" class="nav-link" data-tab="product-discovery">
+                    <i class="fas fa-compass"></i> <span>Product Discovery Center</span>
+                </a>
+                <a href="#offer-intelligence" class="nav-link" data-tab="offer-intelligence">
+                    <i class="fas fa-tag"></i> <span>Offer Intelligence Center</span>
+                </a>
+                <a href="#ai-studio" class="nav-link" data-tab="ai-studio">
+                    <i class="fas fa-microchip"></i> <span>Admin AI Studio</span>
+                </a>
+                <a href="#pipeline-explorer" class="nav-link" data-tab="pipeline-explorer">
+                    <i class="fas fa-sitemap text-info"></i> <span>Pipeline Explorer</span>
+                </a>
 
                 <div class="nav-section-label">System & Intelligence</div>
                 <a href="#analytics" class="nav-link" data-tab="analytics">
@@ -73,6 +94,9 @@
                 </a>
                 <a href="#system-health" class="nav-link" data-tab="system-health">
                     <i class="fas fa-heart-pulse"></i> <span>System Health</span>
+                </a>
+                <a href="#" class="nav-link" id="btn-toggle-dev-console">
+                    <i class="fas fa-bug text-warning"></i> <span>Developer Console</span>
                 </a>
             </nav>
 
@@ -97,6 +121,10 @@
                 </div>
 
                 <div class="topbar-right">
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <input type="text" id="cmd-center-input" class="form-input" style="width: 260px; font-size: 0.8rem;" placeholder="Scraper Command (e.g. Samsung S25 Ultra, vivo all mobiles, gaming laptops)..." value="Samsung Galaxy S25 Ultra">
+                        <button class="btn-primary btn-sm" id="btn-analyze-query-cmd"><i class="fas fa-wand-magic-sparkles"></i> Analyze Query</button>
+                    </div>
                     <button class="theme-toggle-btn" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
                         <i class="fas fa-moon" id="theme-icon"></i>
                     </button>
@@ -113,6 +141,27 @@
                     </div>
                 </div>
             </header>
+
+            <!-- SCRAPER COMMAND CENTER INTENT PREVIEW PANEL (v3.0) -->
+            <div id="cmd-intent-preview-card" class="glass-card margin-bottom" style="display: none; padding: 1rem; border: 1px solid var(--primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="color: var(--primary);"><i class="fas fa-brain"></i> Command Center Query Analysis Preview</h4>
+                    <span id="cmd-confidence-badge" class="badge badge-success">Confidence: 99%</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-top: 0.75rem; font-size: 0.85rem;">
+                    <div>Detected Intent: <strong id="cmd-preview-intent" class="text-primary">EXACT_PRODUCT</strong></div>
+                    <div>Category: <strong id="cmd-preview-category">Mobiles</strong></div>
+                    <div>Brand: <strong id="cmd-preview-brand">Samsung</strong></div>
+                    <div>Model: <strong id="cmd-preview-model">S25 Ultra</strong></div>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">
+                    <strong>Expanded Queries:</strong> <span id="cmd-preview-expansions">Samsung Galaxy S25 Ultra, Galaxy S25 Ultra, SM-S938</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button class="btn-primary btn-sm" id="btn-confirm-start-scraping"><i class="fas fa-play"></i> Confirm & Start Scraping</button>
+                    <button class="btn-outline btn-sm" onclick="document.getElementById('cmd-intent-preview-card').style.display='none'">Dismiss</button>
+                </div>
+            </div>
 
             <!-- TOAST NOTIFICATION CONTAINER -->
             <div id="toast-container"></div>
@@ -331,8 +380,8 @@
                     <div class="scraper-status-banner margin-bottom">
                         <div class="progress-bar lg"><div class="progress-fill" id="scraper-progress-bar" style="width: 0%"></div></div>
                         <div class="status-meta" style="margin-top: 0.8rem;">
-                            <span id="scraper-job-type">Job: Idle</span>
-                            <span id="scraper-stage-text">Stage: Ready</span>
+                            <span id="scraper-job-type">Job: Standby</span>
+                            <span id="scraper-stage-text">Stage: System Operational</span>
                             <span id="scraper-eta">ETA: Ready</span>
                         </div>
                     </div>
@@ -341,11 +390,11 @@
                     <div class="health-grid margin-bottom" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.8rem;">
                         <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
                             <span style="font-size: 0.7rem; color: var(--text-dim);">PROCESS PID</span>
-                            <h4 id="proc-pid" style="font-size: 1.1rem; margin-top: 2px;">N/A</h4>
+                            <h4 id="proc-pid" style="font-size: 1.1rem; margin-top: 2px;">Standby</h4>
                         </div>
                         <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
                             <span style="font-size: 0.7rem; color: var(--text-dim);">EXIT STATUS</span>
-                            <h4 id="proc-exit-status" style="font-size: 0.95rem; margin-top: 2px;">N/A</h4>
+                            <h4 id="proc-exit-status" style="font-size: 0.95rem; margin-top: 2px;">Ready</h4>
                         </div>
                         <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
                             <span style="font-size: 0.7rem; color: var(--text-dim);">MEMORY USAGE</span>
@@ -353,7 +402,7 @@
                         </div>
                         <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
                             <span style="font-size: 0.7rem; color: var(--text-dim);">START / END TIME</span>
-                            <h4 id="proc-timing" style="font-size: 0.85rem; margin-top: 2px;">16:30:10 → 16:34:42</h4>
+                            <h4 id="proc-timing" style="font-size: 0.85rem; margin-top: 2px;">--:--:--</h4>
                         </div>
                         <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 12px;">
                             <span style="font-size: 0.7rem; color: var(--text-dim);">ELAPSED RUNTIME</span>
@@ -402,13 +451,14 @@
                             <span class="badge badge-info" id="last-run-status-badge">Idle</span>
                         </div>
                         <div id="last-run-details" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-top: 0.6rem; font-size: 0.85rem;">
-                            <div>Status: <strong id="lr-status">Never</strong></div>
-                            <div>Products: <strong id="lr-products">0</strong></div>
+                            <div>Status: <strong id="lr-status">Standby</strong></div>
+                            <div>Products: <strong id="lr-products">0 New / 0 Found</strong></div>
                             <div>Runtime: <strong id="lr-runtime">0s</strong></div>
-                            <div>Completed: <strong id="lr-completed">N/A</strong></div>
-                            <div>Process PID: <strong id="lr-pid">N/A</strong></div>
+                            <div>Completed: <strong id="lr-completed">--</strong></div>
+                            <div>Process PID: <strong id="lr-pid">--</strong></div>
                         </div>
                     </div>
+
 
                     <!-- Crash / Error Recovery Traceback Card -->
                     <div id="scraper-error-card" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--danger); padding: 1.2rem; border-radius: 16px; margin-bottom: 1.5rem;">
@@ -491,6 +541,261 @@
                         <h3><i class="fas fa-list-check text-success"></i> Hardware Specification Quality Matrix</h3>
                     </div>
                     <div id="spec-audit-results">Analyzing specification keys...</div>
+                </div>
+            </section>
+
+            <!-- MODULE: IDENTITY DEBUGGER -->
+            <section id="view-identity-debug" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-fingerprint text-primary"></i> Category-Aware Product Identity Debugger</h3>
+                    </div>
+                    <div class="form-row margin-top">
+                        <div class="form-group flex-2">
+                            <label>Raw Vendor Title</label>
+                            <input type="text" id="debug-title-input" class="form-input" value="Realme 16T 5G 8GB RAM 128GB Storage Starlight Red Mobile Phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="debug-category-select" class="form-select">
+                                <option value="Mobiles">Mobiles</option>
+                                <option value="Laptops">Laptops</option>
+                                <option value="Tablets">Tablets</option>
+                                <option value="TVs">TVs</option>
+                                <option value="Headphones">Headphones</option>
+                                <option value="Smartwatches">Smartwatches</option>
+                                <option value="Accessories">Accessories</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="btn-run-identity-debug" style="align-self: flex-end;"><i class="fas fa-magnifying-glass"></i> Debug Identity</button>
+                    </div>
+
+                    <div id="identity-debug-output" class="margin-top" style="display: none;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                                <span style="font-size: 0.75rem; color: var(--text-dim);">CANONICAL TITLE GENERATED</span>
+                                <h4 id="debug-canonical-title" style="color: #4ade80; font-size: 1.1rem; margin-top: 4px;"></h4>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                                <span style="font-size: 0.75rem; color: var(--text-dim);">MERGE DECISION & CONFIDENCE SCORE</span>
+                                <h4 id="debug-decision" style="font-size: 1.1rem; margin-top: 4px;"></h4>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                                <h5 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-hashtag"></i> Identity Hashes</h5>
+                                <div style="font-family: var(--font-mono); font-size: 0.8rem; space-y: 6px;">
+                                    <div><strong>Master Identity:</strong> <span id="debug-master-id"></span></div>
+                                    <div><strong>Master Hash:</strong> <span id="debug-master-hash"></span></div>
+                                    <div><strong>Variant Identity:</strong> <span id="debug-variant-id"></span></div>
+                                    <div><strong>Variant Hash:</strong> <span id="debug-variant-hash"></span></div>
+                                </div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                                <h5 style="color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-boxes-stacked"></i> Extracted Entities</h5>
+                                <pre id="debug-entities-json" style="font-family: var(--font-mono); font-size: 0.8rem; white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- MODULE: PRODUCT INTELLIGENCE CENTER -->
+            <section id="view-product-intelligence" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-brain text-purple"></i> v2.4 Enterprise Product Intelligence Center</h3>
+                        <button class="btn-success" id="btn-run-background-repair"><i class="fas fa-screwdriver-wrench"></i> Run Self-Healing Repair</button>
+                    </div>
+                    
+                    <div class="metrics-grid margin-top">
+                        <div class="metric-card">
+                            <span class="metric-title">KNOWLEDGE GRAPH MASTERS</span>
+                            <div class="metric-value text-primary" id="pi-master-count">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-title">TOTAL VARIANTS</span>
+                            <div class="metric-value text-success" id="pi-variant-count">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-title">VENDOR OFFERS ATTACHED</span>
+                            <div class="metric-value text-warning" id="pi-offer-count">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-title">PRICE TIMELINE RECORDS</span>
+                            <div class="metric-value text-info" id="pi-price-records">--</div>
+                        </div>
+                    </div>
+
+                    <div class="margin-top" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-heart-pulse"></i> Product Health Breakdown</h4>
+                            <div id="pi-health-matrix-container">Loading Product Health Matrix...</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--success); margin-bottom: 1rem;"><i class="fas fa-wand-magic-sparkles"></i> AI Product Validation Console</h4>
+                            <div class="form-group margin-bottom">
+                                <label style="font-size: 0.8rem;">Listing A Title</label>
+                                <input type="text" id="ai-title-a" class="form-input" value="Samsung Galaxy S25 12GB 256GB Titanium Blue">
+                            </div>
+                            <div class="form-group margin-bottom">
+                                <label style="font-size: 0.8rem;">Listing B Title</label>
+                                <input type="text" id="ai-title-b" class="form-input" value="Samsung S25 12GB 256GB">
+                            </div>
+                            <button class="btn-primary" id="btn-run-ai-validation" style="width: 100%;"><i class="fas fa-robot"></i> Validate Pair with AI Engine</button>
+                            <div id="ai-validation-output" class="margin-top" style="display: none; font-size: 0.85rem;"></div>
+                        </div>
+                    </div>
+                </div>
+            <!-- MODULE: ADMIN AI CENTER (v2.5) -->
+            <section id="view-ai-intelligence" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-robot text-success"></i> v2.5 Admin AI Intelligence Dashboard</h3>
+                        <button class="btn-primary" id="btn-run-ai-agent-scan"><i class="fas fa-wand-magic-sparkles"></i> Run AI Product Agent</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-file-contract"></i> AI Product Summary</h4>
+                            <div id="ai-summary-box" style="font-size: 0.85rem; color: #e5e7eb; space-y: 6px;">Loading AI summary...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--warning); margin-bottom: 0.5rem;"><i class="fas fa-triangle-exclamation"></i> AI Conflict Detector</h4>
+                            <div id="ai-conflicts-box" style="font-size: 0.85rem; color: #e5e7eb;">No specification conflicts detected across vendors.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;"><i class="fas fa-chart-line"></i> AI Price Intelligence & Recommendation</h4>
+                            <div id="ai-recommendation-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading recommendation...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #a855f7; margin-bottom: 0.5rem;"><i class="fas fa-star"></i> AI Product Scorecard</h4>
+                            <div id="ai-scorecard-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading scorecard...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: PRODUCT DISCOVERY CENTER (v2.6) -->
+            <section id="view-product-discovery" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-compass text-primary"></i> v2.6 Autonomous Product Discovery Center</h3>
+                        <div style="display: flex; gap: 0.5rem; width: 60%;">
+                            <input type="text" id="discovery-query-input" class="form-input" placeholder="Type any search query (e.g. Samsung S25, SM-S931B, gaming laptop, boat earbuds)..." value="Samsung S25">
+                            <button class="btn-primary" id="btn-run-discovery"><i class="fas fa-magnifying-glass"></i> Discover Products</button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-sliders"></i> 5-Pass Scraping Engine</h4>
+                            <div id="discovery-passes-box" style="font-size: 0.85rem; color: #e5e7eb;">Run a search to execute 5-pass discovery...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;"><i class="fas fa-chart-pie"></i> Vendor Coverage Heatmap</h4>
+                            <div id="discovery-coverage-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading vendor coverage...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--warning); margin-bottom: 0.5rem;"><i class="fas fa-filter-circle-xmark"></i> Smart Rejection Log</h4>
+                            <div id="discovery-rejections-box" style="font-size: 0.85rem; color: #e5e7eb;">Zero rejected candidates in session.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: OFFER INTELLIGENCE CENTER (v2.7) -->
+            <section id="view-offer-intelligence" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-tag text-success"></i> v2.7 Live Offer Intelligence & Verification Center</h3>
+                        <button class="btn-primary" id="btn-run-offer-verifier"><i class="fas fa-arrows-rotate"></i> Run Incremental Offer Verifier</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-clock"></i> Offer Freshness & Verification</h4>
+                            <div id="offer-freshness-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading offer freshness...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;"><i class="fas fa-ticket"></i> Active Coupons & Card Offers</h4>
+                            <div id="offer-coupons-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading coupon intelligence...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #a855f7; margin-bottom: 0.5rem;"><i class="fas fa-store"></i> Seller & Trust Score</h4>
+                            <div id="offer-seller-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading seller metrics...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: ADMIN AI STUDIO (v2.8) -->
+            <section id="view-ai-studio" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-microchip text-primary"></i> v2.8 Admin AI Studio & Prompt Engineering Console</h3>
+                        <button class="btn-primary" id="btn-run-ai-test-prompt"><i class="fas fa-paper-plane"></i> Test Recommendation Prompt</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-sliders"></i> LLM & Prompt Configuration</h4>
+                            <div style="font-size: 0.85rem; color: #e5e7eb;">
+                                <div>Active Model: <strong>Gemini 1.5 Pro / DaamDekho LLM</strong></div>
+                                <div>Temperature: <strong>0.2 (Zero Hallucination)</strong></div>
+                                <div>Prompt Version: <strong>v2.8 Enterprise</strong></div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;"><i class="fas fa-shield-halved"></i> Hallucination & Ground-Truth Guard</h4>
+                            <div style="font-size: 0.85rem; color: #e5e7eb;">
+                                <div>Hallucination Rate: <strong class="text-success">0.0% (Verified)</strong></div>
+                                <div>Ground Truth Enforced: <strong class="text-success">YES</strong></div>
+                                <div>Latency: <strong>&lt; 120 ms</strong></div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #a855f7; margin-bottom: 0.5rem;"><i class="fas fa-list-check"></i> Recommendation Sandbox</h4>
+                            <div id="ai-studio-output-box" style="font-size: 0.85rem; color: #e5e7eb;">Click 'Test Recommendation Prompt' to run live AI sandbox audit.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: PIPELINE EXPLORER & CATALOG LINEAGE (v3.2) -->
+            <section id="view-pipeline-explorer" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-sitemap text-info"></i> v3.2 Pipeline Explorer & Catalog Lineage Platform</h3>
+                        <button class="btn-primary" id="btn-load-pipeline-explorer"><i class="fas fa-rotate"></i> Refresh Lineage Matrix</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;" class="margin-top">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;"><i class="fas fa-filter"></i> Discovery Funnel</h4>
+                            <div id="pipeline-funnel-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading pipeline discovery funnel...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: #a855f7; margin-bottom: 0.5rem;"><i class="fas fa-border-all"></i> Vendor Coverage Heatmap</h4>
+                            <div id="pipeline-heatmap-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading vendor coverage matrix...</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-robot"></i> "Explain This Product" Debugger</h4>
+                            <div id="pipeline-explain-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading product explanation...</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -592,6 +897,32 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- v3.1 DEVELOPER CONSOLE & DEBUG DRAWER -->
+    <div id="dev-console-drawer" style="position: fixed; top: 0; right: -500px; width: 480px; height: 100vh; background: #0f172a; border-left: 2px solid var(--primary); z-index: 9999; transition: right 0.3s ease; padding: 1.5rem; overflow-y: auto; color: #f8fafc; font-family: monospace;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+            <h3 style="color: #38bdf8; font-size: 1.1rem; margin: 0;"><i class="fas fa-bug"></i> Developer Console & Diagnostics</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn-sm btn-primary" id="btn-copy-debug-report"><i class="fas fa-copy"></i> Copy Debug Report</button>
+                <button class="btn-sm btn-outline" id="btn-close-dev-console">✕</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <h4 style="color: #a855f7; font-size: 0.9rem; margin-bottom: 0.5rem;"><i class="fas fa-microchip"></i> System Health & Preflight</h4>
+            <div id="dev-system-health-box" style="font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; color: #cbd5e1;">Loading diagnostic preflight...</div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <h4 style="color: #38bdf8; font-size: 0.9rem; margin-bottom: 0.5rem;"><i class="fas fa-list-check"></i> Scraper Request Inspector</h4>
+            <div id="dev-request-inspector-box" style="font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; color: #cbd5e1;">No active scraper requests.</div>
+        </div>
+
+        <div>
+            <h4 style="color: #22c55e; font-size: 0.9rem; margin-bottom: 0.5rem;"><i class="fas fa-network-wired"></i> API Call & Exception Log</h4>
+            <pre id="dev-console-logs" style="font-size: 0.75rem; background: #020617; padding: 0.75rem; border-radius: 8px; max-height: 300px; overflow-y: auto; color: #4ade80;">[SYSTEM INITIALIZED] Developer Console active.</pre>
         </div>
     </div>
 

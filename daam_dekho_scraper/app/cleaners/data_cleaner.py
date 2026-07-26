@@ -40,6 +40,12 @@ class DataCleaner:
             'laptop accessories': 'Laptop Accessories'
         }
 
+    def normalize_title(self, title_str):
+        """Normalizes product titles."""
+        if not title_str: return ""
+        t = str(title_str).strip()
+        return re.sub(r'\s+', ' ', t)
+
     def clean_price(self, price_str):
         """Converts price strings like ₹49,999 to float 49999.0."""
         if price_str is None: return 0.0

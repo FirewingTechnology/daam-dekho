@@ -1,11 +1,17 @@
 import threading
 import queue
 import json
+import time
 from datetime import datetime
 from app.logger import get_logger
 from app.database.manager import db_manager
 from app.matchers.product_matcher import matcher
 from app.cleaners.data_cleaner import cleaner
+from app.brand_alias import brand_alias_engine
+from app.query_expansion import query_expansion_engine
+from app.canonical_identity import canonical_identity_engine
+from app.vendor_identity import vendor_identity_engine
+from app.validators import image_validator, url_validator
 
 logger = get_logger("scraper_pipeline")
 
@@ -16,7 +22,6 @@ class ScraperPipeline:
 
     def _init_scrapers(self):
         scrapers = {}
-        # Dynamic import to avoid circular dependencies
         from app.scrapers.amazon import AmazonScraper
         from app.scrapers.flipkart import FlipkartScraper
         from app.scrapers.croma import CromaScraper
@@ -31,14 +36,13 @@ class ScraperPipeline:
             'vijaysales': VijaySalesScraper
         }
 
-
         for v in self.vendors:
             if v in factory:
                 scrapers[v] = factory[v]()
         return scrapers
 
-    def run_search(self, query, category="mobiles", vendors=None):
-        """Runs search across all selected vendors in strict sequence: Amazon -> Flipkart -> Croma -> JioMart -> VijaySales."""
+    def run_search(self, query, category="mobiles", vendors=None, scrape_mode="Auto Detect"):
+        """Runs expanded search across all selected vendors in sequence: Amazon -> Flipkart -> Croma -> JioMart -> VijaySales."""
         if not category:
             category = "mobiles"
             
@@ -48,30 +52,61 @@ class ScraperPipeline:
         else:
             selected_vendors = ordered_vendors
 
+        query_variations = query_expansion_engine.expand_query(query, category=category, scrape_mode=scrape_mode)
+        logger.info(f"Query Expansion generated {len(query_variations)} variations: {query_variations}")
+
         all_products = []
         vendor_summaries = {}
 
         for v_name in selected_vendors:
             if v_name in self.scrapers:
                 scraper = self.scrapers[v_name]
-                try:
-                    logger.info(f"Starting scrape for {v_name} with query: {query}")
-                    products = scraper.scrape(query, category=category) or []
-                    all_products.extend(products)
-                    vendor_summaries[v_name] = {"count": len(products), "status": "Success"}
-                    logger.info(f"✅ {v_name.capitalize()} Scan Complete — Found {len(products)} live offers")
-                except Exception as e:
-                    logger.error(f"Scraper error for {v_name}: {e}")
-                    vendor_summaries[v_name] = {"count": 0, "status": f"Failed: {e}"}
+                vendor_products = []
+                for q_var in query_variations:
+                    try:
+                        logger.info(f"Scraping {v_name} for expanded query variation: '{q_var}'")
+                        products = scraper.scrape(q_var, category=category) or []
+                        vendor_products.extend(products)
+                    except Exception as e:
+                        logger.error(f"Scraper error for {v_name} with query '{q_var}': {e}")
+                
+                # Deduplicate by URL within vendor
+                seen_urls = set()
+                deduped = []
+                for p in vendor_products:
+                    u = p.get('product_link') or p.get('url')
+                    if u and u not in seen_urls:
+                        seen_urls.add(u)
+                        deduped.append(p)
+
+                all_products.extend(deduped)
+                vendor_summaries[v_name] = {"count": len(deduped), "status": "SUCCESS"}
+                logger.info(f"✅ {v_name.capitalize()} Scan Complete — Gathered {len(deduped)} unique live offers")
 
         logger.info(f"Multi-Vendor Scraping Complete across {len(selected_vendors)} vendors. Total raw products gathered: {len(all_products)}")
         self.process_and_save(all_products, category)
         return all_products
 
     def process_and_save(self, products, category):
-        """Clean, match, and save products to database after all vendors have completed."""
-        logger.info(f"Beginning normalization and matching for {len(products)} raw products...")
+        """Clean, match, validate, and save products to database."""
+        logger.info(f"Beginning normalization, validation, and matching for {len(products)} raw products...")
         for p in products:
+            # 1. URL Validation
+            p_url = p.get('product_link') or p.get('url')
+            valid_url, url_reason = url_validator.validate_pdp_url(p_url, p.get('vendor', ''))
+            if not valid_url:
+                logger.debug(f"Skipping product with invalid PDP URL: {p.get('title')} ({url_reason})")
+                continue
+
+            # 2. Image Validation
+            images = p.get('image_urls', [])
+            if images:
+                valid_img, img_reason = image_validator.validate_image_url(images[0])
+                if not valid_img:
+                    logger.debug(f"Rejecting invalid/placeholder image URL for '{p.get('title')}': {images[0]} ({img_reason})")
+                    p['image_urls'] = []
+
+            # 3. Category & Data Normalization
             detected_cat = cleaner.detect_actual_category(p)
             p['category'] = detected_cat
 
@@ -88,14 +123,16 @@ class ScraperPipeline:
 
             p['discounted_price'] = cleaner.clean_price(p.get('discounted_price'))
             p['price'] = cleaner.clean_price(p.get('price'))
-            p['brand'] = cleaner.normalize_brand(p.get('brand'))
+            
+            raw_brand = p.get('brand')
+            norm_brand = brand_alias_engine.normalize_brand(raw_brand, p.get('title'))
+            p['brand'] = norm_brand
             p['category'] = cleaner.normalize_category(p.get('category'))
 
             self._save_to_production_db(p, p['category'])
 
     def _save_to_production_db(self, p, category):
-        """Saves a product using the normalized schema with retries for locks."""
-        import time
+        """Saves a product using v2.3 category-aware master_identity & variant_identity hashes for 100% idempotency."""
         max_retries = 5
         for attempt in range(max_retries):
             try:
@@ -104,113 +141,148 @@ class ScraperPipeline:
 
                 clean_title = matcher.normalize_title(p.get('title'))
                 brand = p.get('brand')
-                category = p.get('category')
-
-                cursor.execute("SELECT id, title, brand, category FROM products_master WHERE brand = ?", (brand,))
-                candidates = [{"id": row[0], "title": row[1], "brand": row[2], "category": row[3]} for row in cursor.fetchall()]
-                
-                best_match, score, reject_reason = matcher.find_best_match(p, candidates, threshold=75) 
-                
-                if best_match:
-                    product_id = best_match['id']
-                    logger.info(f"Matched '{p.get('title')}' with existing master '{best_match['title']}' (Score: {score})")
-                else:
-                    logger.info(f"No match for '{p.get('title')}'. Rejection rationale: {reject_reason} (Score: {score})")
-                    image_url = p.get('image_urls')[0] if p.get('image_urls') and len(p.get('image_urls')) > 0 else None
-                    cursor.execute("""
-                        INSERT INTO products_master (title, clean_title, brand, category, base_image)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (p.get('title'), clean_title, brand, category, image_url))
-                    product_id = cursor.lastrowid
-                    logger.info(f"Created new master for '{p.get('title')}'")
-
-                # 2. Handle Variant
+                category = p.get('category') or category or "Mobiles"
                 specs = p.get('specifications', {})
-                ram = matcher.extract_entities(p.get('title'), specs).get('ram', 'N/A')
-                storage = matcher.extract_entities(p.get('title'), specs).get('storage', 'N/A')
-                variant_slug = f"{product_id}_{ram}_{storage}".replace(" ", "").lower()
 
-                
-                cursor.execute("SELECT id FROM product_variants WHERE slug = ?", (variant_slug,))
+                logger.info(f"[PIPELINE_STAGE: SAVING_PRODUCT] Processing '{clean_title}' ({brand} / {category})")
+
+                # Generate Category-Aware Master & Variant Identity (v2.3)
+                from app.category_identity import category_identity_engine
+                from app.canonical_title import canonical_title_engine
+
+                identities = category_identity_engine.build_identities(p.get('title'), specs, category=category, brand=brand)
+                master_hash = identities['master_identity_hash']
+                master_str = identities['master_identity']
+                variant_hash = identities['variant_identity_hash']
+                hw_hash = identities['hardware_hash']
+
+                canonical_title = canonical_title_engine.generate_canonical_title(p.get('title'), specs, category=category, brand=brand)
+
+                # Search existing products master by master_identity or weighted candidate matching
+                cursor.execute("SELECT id, title, brand, category, canonical_title FROM products_master WHERE master_identity = ?", (master_hash,))
+                master_row = cursor.fetchone()
+
+                if master_row:
+                    product_id = master_row[0]
+                    cursor.execute("UPDATE products_master SET canonical_title = ?, base_image = COALESCE(base_image, ?) WHERE id = ?",
+                                   (canonical_title, p.get('image_urls')[0] if p.get('image_urls') else None, product_id))
+                    logger.info(f"[PIPELINE_STAGE: MATCHED] Matched '{p.get('title')}' with existing Master Product #{product_id} ('{canonical_title}') via Master Identity")
+                else:
+                    cursor.execute("SELECT id, title, brand, category FROM products_master WHERE brand = ?", (brand,))
+                    candidates = [{"id": row[0], "title": row[1], "brand": row[2], "category": row[3]} for row in cursor.fetchall()]
+                    best_match, score, reject_reason = matcher.find_best_match(p, candidates, threshold=70)
+
+                    if best_match:
+                        product_id = best_match['id']
+                        cursor.execute("UPDATE products_master SET master_identity = ?, canonical_title = ? WHERE id = ?", (master_hash, canonical_title, product_id))
+                        logger.info(f"[PIPELINE_STAGE: MATCHED] Matched '{p.get('title')}' with candidate Master #{product_id} (Score: {score})")
+                    else:
+                        image_url = p.get('image_urls')[0] if p.get('image_urls') and len(p.get('image_urls')) > 0 else None
+                        cursor.execute("""
+                            INSERT INTO products_master (title, clean_title, normalized_title, canonical_title, brand, category, base_image, master_identity)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (p.get('title'), clean_title, clean_title, canonical_title, brand, category, image_url, master_hash))
+                        product_id = cursor.lastrowid
+                        logger.info(f"[PIPELINE_STAGE: CREATED] Created new Master Product #{product_id} ('{canonical_title}')")
+
+                # Handle Variant Identity & Creation
+                ram = identities['entities']['ram'] or 'N/A'
+                storage = identities['entities']['storage'] or 'N/A'
+                color = identities['color'] or ''
+                variant_slug = f"{product_id}_{ram}_{storage}_{color}".replace(" ", "").lower().strip('_')
+
+                cursor.execute("SELECT id FROM product_variants WHERE variant_identity = ? OR canonical_hash = ? OR slug = ?", 
+                               (variant_hash, master_hash, variant_slug))
                 variant_row = cursor.fetchone()
-                
+
                 if variant_row:
                     variant_id = variant_row[0]
                 else:
                     cursor.execute("""
-                        INSERT INTO product_variants (product_id, ram, storage, slug)
-                        VALUES (?, ?, ?, ?)
-                    """, (product_id, ram, storage, variant_slug))
-                    variant_id = cursor.lastrowid
+                        INSERT INTO product_variants (product_id, color, edition, ram, storage, slug, canonical_hash, variant_identity, hardware_identity)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(variant_identity) DO UPDATE SET color=excluded.color
+                    """, (product_id, color, identities['edition'], ram, storage, variant_slug, master_hash, variant_hash, hw_hash))
+                    variant_id = cursor.lastrowid or cursor.execute("SELECT id FROM product_variants WHERE variant_identity = ?", (variant_hash,)).fetchone()[0]
 
-                # 3. Save Specifications (Update if changed or new)
+                # Save Specifications
                 if specs:
                     for key, value in specs.items():
                         if value and value != 'N/A':
-                            # Check if spec already exists for this variant
                             cursor.execute("SELECT id FROM product_specifications WHERE variant_id = ? AND spec_key = ?", (variant_id, key))
                             spec_row = cursor.fetchone()
                             if spec_row:
-                                # Update existing spec
                                 cursor.execute("""
                                     UPDATE product_specifications 
                                     SET spec_value = ? 
                                     WHERE id = ?
                                 """, (str(value), spec_row[0]))
                             else:
-                                # Insert new spec
                                 cursor.execute("""
                                     INSERT INTO product_specifications (variant_id, spec_key, spec_value)
                                     VALUES (?, ?, ?)
                                 """, (variant_id, key, str(value)))
 
-                # 4. Get Vendor ID
+                # Get Vendor ID
                 cursor.execute("SELECT id, name FROM vendors")
-                vendor_id = 3 # Default to Croma if not found? No, better 1.
+                vendor_id = 1
                 target_vendor = p.get('vendor', '').lower().replace(" ", "")
                 for vid, vname in cursor.fetchall():
                     if vname.lower().replace(" ", "") in target_vendor or target_vendor in vname.lower().replace(" ", ""):
                         vendor_id = vid
                         break
 
-                # 4. Save/Update Vendor Product (Incremental Delta Check)
+                # Vendor Identity Hash Generation (v2.1)
+                product_url = p.get('product_link') or p.get('url')
+                v_identity = vendor_identity_engine.generate_vendor_identity_hash(p.get('vendor'), product_url, p.get('title'))
+                vendor_identity_hash = v_identity['vendor_identity_hash']
+                vendor_product_id = v_identity['vendor_product_id']
+
                 offers_list = p.get('offers', [])
                 if isinstance(offers_list, str): offers_list = [offers_list]
                 offers_json = json.dumps(offers_list)
-                product_url = p.get('product_link') or p.get('url')
                 discounted_price = p.get('discounted_price')
 
-                # Check if vendor product already exists to record price history delta
-                cursor.execute("SELECT id, price FROM vendor_products WHERE url = ?", (product_url,))
+                cursor.execute("SELECT id, price FROM vendor_products WHERE vendor_identity_hash = ? OR url = ?", (vendor_identity_hash, product_url))
                 existing_vp = cursor.fetchone()
 
                 if existing_vp:
                     vp_id, old_price = existing_vp[0], existing_vp[1]
-                    # Record price shift into price_history if price changed
-                    if old_price is not None and abs(old_price - discounted_price) > 0.01:
+                    if old_price is not None and discounted_price is not None and abs(old_price - discounted_price) > 0.01:
                         cursor.execute("""
                             INSERT INTO price_history (vendor_product_id, price, recorded_at)
                             VALUES (?, ?, ?)
                         """, (vp_id, discounted_price, datetime.now()))
-                        logger.info(f"Price Change Detected for VP #{vp_id}: ₹{old_price} -> ₹{discounted_price}")
-                
-                cursor.execute("""
-                    INSERT INTO vendor_products (variant_id, vendor_id, title, url, price, mrp, rating, reviews, offers, last_scraped_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(url) DO UPDATE SET
-                        title = excluded.title,
-                        price = excluded.price,
-                        mrp = excluded.mrp,
-                        rating = excluded.rating,
-                        reviews = excluded.reviews,
-                        offers = excluded.offers,
-                        last_scraped_at = excluded.last_scraped_at
-                """, (variant_id, vendor_id, p.get('title'), product_url, discounted_price, 
-                      p.get('price'), p.get('rating'), p.get('reviews'), offers_json, datetime.now()))
-                
-                if not existing_vp:
-                    vp_id = cursor.lastrowid or cursor.execute("SELECT id FROM vendor_products WHERE url=?", (product_url,)).fetchone()[0]
-                    cursor.execute("INSERT INTO price_history (vendor_product_id, price, recorded_at) VALUES (?, ?, ?)", (vp_id, discounted_price, datetime.now()))
+                        logger.info(f"Price Shift recorded for VP #{vp_id}: ₹{old_price} -> ₹{discounted_price}")
+
+                    cursor.execute("""
+                        UPDATE vendor_products
+                        SET variant_id = ?,
+                            vendor_id = ?,
+                            vendor_product_id = ?,
+                            vendor_identity_hash = ?,
+                            title = ?,
+                            original_title = ?,
+                            canonical_title = ?,
+                            url = ?,
+                            price = ?,
+                            mrp = ?,
+                            rating = ?,
+                            reviews = ?,
+                            offers = ?,
+                            last_scraped_at = ?
+                        WHERE id = ?
+                    """, (variant_id, vendor_id, vendor_product_id, vendor_identity_hash, canonical_title, p.get('title'),
+                          canonical_title, product_url, discounted_price, p.get('price'), p.get('rating'), p.get('reviews'), offers_json, datetime.now(), vp_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO vendor_products (variant_id, vendor_id, vendor_product_id, vendor_identity_hash, title, original_title, canonical_title, url, price, mrp, rating, reviews, offers, last_scraped_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (variant_id, vendor_id, vendor_product_id, vendor_identity_hash, canonical_title, p.get('title'), canonical_title,
+                          product_url, discounted_price, p.get('price'), p.get('rating'), p.get('reviews'), offers_json, datetime.now()))
+                    vp_id = cursor.lastrowid
+                    if discounted_price is not None:
+                        cursor.execute("INSERT INTO price_history (vendor_product_id, price, recorded_at) VALUES (?, ?, ?)", (vp_id, discounted_price, datetime.now()))
 
                 conn.commit()
                 conn.close()
@@ -222,6 +294,5 @@ class ScraperPipeline:
                 logger.error(f"Pipeline DB Error: {e}")
                 if 'conn' in locals(): conn.close()
                 break
-
 
 pipeline = ScraperPipeline()
