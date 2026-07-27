@@ -86,13 +86,8 @@ export const searchProducts = async (filters) => {
 
   if (q) {
     const typoMap = {
-      'iphne': 'iphone',
-      'ifone': 'iphone',
-      'ipone': 'iphone',
-      'samsng': 'samsung',
-      'samung': 'samsung',
-      'aple': 'apple',
-      'appl': 'apple'
+      'iphne': 'iphone', 'ifone': 'iphone', 'ipone': 'iphone',
+      'samsng': 'samsung', 'samung': 'samsung', 'aple': 'apple', 'appl': 'apple'
     };
     const keywords = q.trim().split(/\s+/).map(w => typoMap[w.toLowerCase()] || w);
     keywords.forEach(kw => {
@@ -168,38 +163,6 @@ export const searchProducts = async (filters) => {
 
 export const getProductBySlug = async (slug) => {
   const product = await get(`SELECT *, COALESCE(canonical_title, title) as title, title as raw_vendor_title, id as slug, base_image, base_image as image_url FROM products_master WHERE id = ?`, [slug]);
-
-
-
-
-
-
-
-  const totalSql = `SELECT COUNT(*) as total FROM (${sql}) as _subq`;
-  const totalResult = await get(totalSql, params);
-
-  sql += ` LIMIT ? OFFSET ?`;
-  params.push(limit, offset);
-
-  const rawProducts = await query(sql, params);
-  const products = rawProducts.map(p => ({
-    ...p,
-    image_urls: p.base_image ? [p.base_image] : []
-  }));
-
-  return {
-    products,
-    pagination: {
-        total: totalResult.total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalResult.total / limit)
-    }
-  };
-};
-
-export const getProductBySlug = async (slug) => {
-  const product = await get(`SELECT *, id as slug, base_image, base_image as image_url FROM products_master WHERE id = ?`, [slug]);
   if (!product) return null;
 
   product.image_urls = product.base_image ? [product.base_image] : [];
@@ -217,7 +180,6 @@ export const getProductBySlug = async (slug) => {
 
   const variants = await query(`SELECT * FROM product_variants WHERE product_id = ?`, [product.id]);
 
-  
   const vendorsMap = {};
   const allSpecs = {};
 
@@ -317,6 +279,7 @@ export const getBrands = async () => {
   const result = await query(`SELECT DISTINCT brand FROM products_master WHERE brand IS NOT NULL`);
   return result.map(r => r.brand);
 };
+
 export const getFilterOptions = async (category) => {
   let whereClause = '';
   const params = [];
@@ -407,4 +370,3 @@ export const getSitemapXml = async (baseUrl = 'http://localhost:5173') => {
   xml += `</urlset>`;
   return xml;
 };
-
