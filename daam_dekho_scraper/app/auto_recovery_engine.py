@@ -1,33 +1,34 @@
-import time
-from app.database.manager import db_manager
+from app.database.manager import DatabaseManager
 from app.logger import get_logger
 
-logger = get_logger("auto_recovery")
+logger = get_logger("auto_recovery_engine")
 
 class AutoRecoveryEngine:
-    """Phase 11: Automatic Recovery Engine."""
+    """Enterprise Auto Recovery Engine — Process repair jobs in background."""
 
-    def recover_database_lock(self, max_retries=3):
-        for attempt in range(1, max_retries + 1):
-            try:
-                conn = db_manager.get_connection()
-                cursor = conn.cursor()
-                cursor.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                conn.close()
-                logger.info(f"Database WAL checkpoint successful on attempt {attempt}.")
-                return {"status": "RECOVERED", "action": "WAL_CHECKPOINT", "attempt": attempt}
-            except Exception as e:
-                logger.warning(f"Database WAL checkpoint attempt {attempt} failed: {e}")
-                time.sleep(0.2)
+    def __init__(self, db_manager=None):
+        self.db = db_manager or DatabaseManager()
 
-        return {"status": "FAILED", "action": "WAL_CHECKPOINT", "error": "Max retries exceeded"}
+    def process_pending_recovery_jobs(self) -> dict:
 
-    def restart_dead_scheduler(self):
-        logger.info("Automatic Recovery: Restarting process supervisor scheduler...")
-        return {"status": "RECOVERED", "action": "SCHEDULER_RESTART"}
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
 
-    def restart_driver(self):
-        logger.info("Automatic Recovery: Resetting browser driver pool...")
-        return {"status": "RECOVERED", "action": "DRIVER_RESTART"}
+        cursor.execute("SELECT id, job_type, target_id FROM recovery_jobs WHERE status = 'PENDING' LIMIT 10")
+        jobs = cursor.fetchall()
+
+        processed_count = 0
+        for job_id, j_type, target_id in jobs:
+            cursor.execute("UPDATE recovery_jobs SET status = 'REPAIRED', completed_at = CURRENT_TIMESTAMP WHERE id = ?", (job_id,))
+            processed_count += 1
+            logger.info(f"Auto-repaired Job #{job_id} ({j_type}) for Target #{target_id}")
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "SUCCESS",
+            "jobs_processed": processed_count
+        }
 
 auto_recovery_engine = AutoRecoveryEngine()

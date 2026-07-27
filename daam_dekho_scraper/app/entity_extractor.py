@@ -20,7 +20,9 @@ MARKETING_WORDS = [
     r'\bofficial\b', r'\boriginal\b', r'\bdeal\b', r'\bbest\s+seller\b', r'\blatest\b',
     r'\bwith\s+warranty\b', r'\boffers\b', r'\bspecial\s+edition\b', r'\blimited\s+edition\b',
     r'\bwith\s+other\s+offers\b', r'\bbuilt-in\s+privacy\s+display\b', r'\bphoto\s+assist\b',
-    r'\bcreative\s+studio\b', r'\blong\s+battery\s+life\b', r'\bs\s+pen\s+included\b'
+    r'\bcreative\s+studio\b', r'\blong\s+battery\s+life\b', r'\bs\s+pen\s+included\b',
+    r'\bsuper\s+amoled\b', r'\bamoled\b', r'\b50mp\b', r'\b108mp\b', r'\b200mp\b', r'\b7200mah\b',
+    r'\b5000mah\b', r'\b6000mah\b', r'\bdimensity\s+\d{4}\b', r'\bsnapdragon\s+\d(?:\s*gen\s*\d)?\b'
 ]
 
 class EntityExtractor:
@@ -40,7 +42,6 @@ class EntityExtractor:
 
         t_lower = (title or "").lower()
         for col in COLOR_DICTIONARY:
-            # Check full word boundaries for color
             if re.search(r'\b' + re.escape(col) + r'\b', t_lower):
                 return col
         return None
@@ -68,7 +69,6 @@ class EntityExtractor:
         if ram_match:
             return f"{ram_match.group(1)}gb"
 
-        # Fallback to standalone RAM extraction
         ram_standalone = re.search(r'\b(4|6|8|12|16|24|32|64)\s*gb\b', t_lower)
         if ram_standalone:
             return f"{ram_standalone.group(1)}gb"
@@ -88,7 +88,6 @@ class EntityExtractor:
         if st_match:
             return f"{st_match.group(1)}{st_match.group(2)}"
 
-        # Standalone storage match (higher numbers 64, 128, 256, 512, 1tb, 2tb)
         tb_match = re.search(r'\b(1|2)\s*tb\b', t_lower)
         if tb_match:
             return f"{tb_match.group(1)}tb"
@@ -105,7 +104,6 @@ class EntityExtractor:
 
         t_lower = (title or "").lower()
         if not cpu:
-            # CPU Extraction (Intel i3/i5/i7/i9, Ryzen 3/5/7/9, Snapdragon, Bionic, Tensor, Dimensity)
             intel = re.search(r'\b(i[3579])[\s-]*(\d{4,5}[hup]?|core\s+ultra\s+[579])\b', t_lower)
             ryzen = re.search(r'\b(ryzen\s+[3579])[\s-]*(\d{4}[hup]?)\b', t_lower)
             snap = re.search(r'\b(snapdragon\s+\d(?:\s*gen\s*\d)?)\b', t_lower)
@@ -162,19 +160,28 @@ class EntityExtractor:
         # iPhone Series
         iphone = re.search(r'\biphone\s+(16\s*pro\s*max|16\s*pro|16\s*plus|16|15\s*pro\s*max|15\s*pro|15\s*plus|15|14\s*plus|14\s*pro\s*max|14\s*pro|14|13\s*mini|13|12|11|se)\b', t_lower)
         if iphone:
-            model_name = f"iPhone {iphone.group(1).title()}"
-            return "iPhone", model_name
+            return "iPhone", f"iPhone {iphone.group(1).title()}"
 
         # Samsung Series
-        samsung = re.search(r'\bgalaxy\s+(s\d{2}\s*ultra|s\d{2}\s*plus|s\d{2}\s*fe|s\d{2}|a\d{2}\s*5g|a\d{2}|m\d{2}|z\s*fold\s*\d|z\s*flip\s*\d)\b', t_lower)
+        samsung = re.search(r'\bgalaxy\s+(s\d{2}\s*ultra|s\d{2}\s*plus|s\d{2}\s*fe|s\d{2}|a\d{2}\s*5g|a\d{2}|m\d{2}|f\d{2}|z\s*fold\s*\d|z\s*flip\s*\d)\b', t_lower)
         if samsung:
-            model_name = f"Galaxy {samsung.group(1).upper()}"
-            return "Galaxy", model_name
+            return "Galaxy", f"Galaxy {samsung.group(1).upper()}"
+
+        # Vivo Series (T5x 5G, V30, Y200, X100, etc.)
+        vivo = re.search(r'\bvivo\s+([a-z0-9]+\s*(?:pro\s*\+|pro|5g|x|t)?)\b', t_lower)
+        if vivo:
+            return "Vivo", f"Vivo {vivo.group(1).title()}"
+
 
         # Realme Series
         realme = re.search(r'\brealme\s+([a-z0-9]+\s*(?:pro\s*\+|pro|5g|t)?)\b', t_lower)
         if realme:
             return "Realme", f"Realme {realme.group(1).title()}"
+
+        # OnePlus Series
+        oneplus = re.search(r'\boneplus\s+([a-z0-9\s]+(?:pro|r|nord\s*ce\s*\d|nord\s*\d)?)\b', t_lower)
+        if oneplus:
+            return "OnePlus", f"OnePlus {oneplus.group(1).title()}"
 
         # Laptop Series
         macbook = re.search(r'\bmacbook\s+(air|pro)\s*(m[1234])?\b', t_lower)
@@ -199,6 +206,7 @@ class EntityExtractor:
         series = tokens[1] if len(tokens) > 1 else tokens[0] if tokens else "Series"
         model = " ".join(tokens[:3]) if tokens else "Model"
         return series, model
+
 
     def extract_all(self, title, specs=None, category="Mobiles", brand=None):
         specs = specs or {}

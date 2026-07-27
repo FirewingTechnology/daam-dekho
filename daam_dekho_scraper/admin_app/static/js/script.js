@@ -485,16 +485,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MODULE 5 & 6: SCRAPER CENTER & PROGRESS ---
     document.getElementById('btn-trigger-scrape')?.addEventListener('click', async () => {
-        const query = document.getElementById('scraper-query').value.trim();
+        const mode = document.querySelector('input[name="discovery_mode"]:checked')?.value || 'EXACT_PRODUCT';
         const vendors = Array.from(document.querySelectorAll('.vendor-checkbox-grid input:checked')).map(cb => cb.value);
 
-        if (!query) { showToast('Please enter a query', 'warning'); return; }
+        const productName = document.getElementById('v42-product-name')?.value.trim() || '';
+        const brand = document.getElementById('v42-brand-select')?.value || '';
+        const category = document.getElementById('v42-category-select')?.value || '';
+
+        // Advanced filter fields
+        const ram = document.getElementById('adv-ram')?.value || '';
+        const storage = document.getElementById('adv-storage')?.value || '';
+        const cpu = document.getElementById('adv-cpu')?.value || '';
+        const gpu = document.getElementById('adv-gpu')?.value || '';
+        const display = document.getElementById('adv-display')?.value || '';
+        const minPrice = document.getElementById('adv-min-price')?.value || '';
+        const maxPrice = document.getElementById('adv-max-price')?.value || '';
+        const is5g = document.getElementById('adv-is-5g')?.checked || false;
+        const maxPages = document.getElementById('adv-max-pages')?.value || '3';
+        const maxProducts = document.getElementById('adv-max-products')?.value || '50';
+
+        // Determine effective query string if needed
+        let query = productName;
+        if (mode === 'BRAND_CATALOG') query = `${brand} all products`;
+        else if (mode === 'CATEGORY_CATALOG') query = `${category}`;
+        else if (mode === 'BRAND_CATEGORY') query = `${brand} ${category}`;
+        else if (mode === 'ADVANCED_DISCOVERY') query = `${brand} ${category} ${ram} ${storage}`.trim() || productName;
+
+        const payload = {
+            action: 'scrape_query',
+            mode: mode,
+            query: query,
+            product_name: productName,
+            brand: brand,
+            category: category,
+            ram: ram,
+            storage: storage,
+            cpu: cpu,
+            gpu: gpu,
+            display: display,
+            min_price: minPrice,
+            max_price: maxPrice,
+            is_5g: is5g,
+            max_pages: maxPages,
+            max_products: maxProducts,
+            vendors: vendors
+        };
 
         try {
             const res = await fetch('/api/scraper/action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'scrape_query', query, vendors })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             showToast(data.message, 'success');
@@ -502,6 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Scraper trigger failed', 'danger');
         }
     });
+
 
     document.getElementById('btn-stop-scrape')?.addEventListener('click', async () => {
         const res = await fetch('/api/scraper/action', {
@@ -565,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (terminal && data.logs) {
                 terminal.innerHTML = data.logs.map(l => {
                     let cls = '';
-                    if (l.includes('ERROR')) cls = 'error';
+                    if (l.includes('ERROR') || l.includes('FAILED')) cls = 'error';
                     else if (l.includes('ADMIN') || l.includes('SYSTEM')) cls = 'system';
                     return `<div class="log-entry ${cls}">${l.trim()}</div>`;
                 }).join('');
@@ -578,6 +620,265 @@ document.addEventListener('DOMContentLoaded', () => {
         const terminal = document.getElementById('live-terminal-container');
         if (terminal) terminal.innerHTML = '<div class="log-entry system">[SYSTEM] Terminal logs cleared.</div>';
     });
+
+    // --- REAL-TIME SCRAPER MONITOR & STATUS POLLING ENGINE ---
+    async function pollScraperStatus() {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+
+            // 1. Stage Badge & Status Pills
+            const stageBadge = document.getElementById('scraper-stage-badge');
+            const globalPill = document.getElementById('global-scraper-pill');
+            const globalText = document.getElementById('global-scraper-text');
+
+            const statusStr = (data.status || 'Idle').trim();
+            const exitStatusStr = (data.exit_status || 'Ready').trim();
+
+            if (stageBadge) {
+                if (statusStr.includes('Active') || statusStr.includes('Scraping') || statusStr.includes('Starting') || statusStr.includes('Initializing')) {
+                    stageBadge.className = 'badge badge-warning';
+                    stageBadge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scraping Active';
+                    if (globalPill) globalPill.classList.add('running');
+                    if (globalText) globalText.innerText = `Running: ${data.job_type || 'Job'}`;
+                } else if (statusStr === 'Completed') {
+                    stageBadge.className = 'badge badge-success';
+                    stageBadge.innerHTML = '<i class="fas fa-check-circle"></i> Completed (Success)';
+                    if (globalPill) globalPill.classList.remove('running');
+                    if (globalText) globalText.innerText = 'Scraper Completed';
+                } else if (statusStr === 'Failed') {
+                    stageBadge.className = 'badge badge-danger';
+                    stageBadge.innerHTML = '<i class="fas fa-triangle-exclamation"></i> FAILED';
+                    if (globalPill) globalPill.classList.remove('running');
+                    if (globalText) globalText.innerText = 'Scraper Failed';
+                } else if (statusStr === 'Stopped') {
+                    stageBadge.className = 'badge badge-warning';
+                    stageBadge.innerHTML = '<i class="fas fa-circle-stop"></i> Stopped by Admin';
+                    if (globalPill) globalPill.classList.remove('running');
+                    if (globalText) globalText.innerText = 'Scraper Stopped';
+                } else {
+                    stageBadge.className = 'badge badge-info';
+                    stageBadge.innerText = 'Idle (Ready)';
+                    if (globalPill) globalPill.classList.remove('running');
+                    if (globalText) globalText.innerText = 'Scraper Idle';
+                }
+            }
+
+            // 2. Banner Progress & Meta
+            const progressBar = document.getElementById('scraper-progress-bar');
+            if (progressBar) progressBar.style.width = `${data.progress || 0}%`;
+
+            const jobTypeElem = document.getElementById('scraper-job-type');
+            if (jobTypeElem) jobTypeElem.innerText = `Job: ${data.job_type || 'Standby'}`;
+
+            const stageTextElem = document.getElementById('scraper-stage-text');
+            if (stageTextElem) stageTextElem.innerText = `Stage: ${data.stage || 'System Operational'}`;
+
+            const etaElem = document.getElementById('scraper-eta');
+            if (etaElem) etaElem.innerText = `ETA: ${data.eta || 'Ready'}`;
+
+            // 3. Process Performance Grid
+            const pidElem = document.getElementById('proc-pid');
+            if (pidElem) pidElem.innerText = data.pid ? `#${data.pid}` : 'Standby';
+
+            const exitElem = document.getElementById('proc-exit-status');
+            if (exitElem) {
+                exitElem.innerText = exitStatusStr;
+                if (statusStr === 'Completed' || exitStatusStr.includes('Exit Code 0')) {
+                    exitElem.style.color = '#22c55e';
+                } else if (statusStr === 'Failed' || exitStatusStr.includes('Crashed')) {
+                    exitElem.style.color = '#ef4444';
+                } else {
+                    exitElem.style.color = 'var(--text-main)';
+                }
+            }
+
+            const memElem = document.getElementById('proc-mem');
+            if (memElem) memElem.innerText = `${data.memory_mb || 0.0} MB`;
+
+            const timingElem = document.getElementById('proc-timing');
+            if (timingElem) timingElem.innerText = `${data.started_at || '--:--:--'} / ${data.completed_at || '--:--:--'}`;
+
+            const runtimeElem = document.getElementById('proc-runtime');
+            if (runtimeElem) runtimeElem.innerText = data.runtime_formatted || '0s';
+
+            const foundElem = document.getElementById('proc-found');
+            if (foundElem) foundElem.innerText = data.products_found || 0;
+
+            // 4. Live Real-Time Product Metrics
+            const importedElem = document.getElementById('proc-imported');
+            if (importedElem) importedElem.innerText = data.imported_products || data.products_imported || 0;
+
+            const updatedElem = document.getElementById('proc-updated');
+            if (updatedElem) updatedElem.innerText = data.products_updated || 0;
+
+            const rejectedElem = document.getElementById('proc-rejected');
+            if (rejectedElem) rejectedElem.innerText = data.rejected_products || 0;
+
+            const dupsElem = document.getElementById('proc-duplicates');
+            if (dupsElem) dupsElem.innerText = data.duplicate_products || 0;
+
+            const imgsElem = document.getElementById('proc-images');
+            if (imgsElem) imgsElem.innerText = data.image_downloaded || 0;
+
+            // 5. Failure & Error Rationale Traceback Card (#scraper-error-card)
+            const errorCard = document.getElementById('scraper-error-card');
+            const errorTraceback = document.getElementById('scraper-error-traceback');
+
+            if (errorCard && errorTraceback) {
+                if (statusStr === 'Failed' || (data.error_message && statusStr !== 'Completed')) {
+                    errorCard.style.display = 'block';
+                    let failureReport = `================================================================================\n`;
+                    failureReport += `JOB FAILURE REPORT & ERROR RATIONALE\n`;
+                    failureReport += `================================================================================\n`;
+                    failureReport += `Status: FAILED (${data.exit_status || 'Crashed'})\n`;
+                    failureReport += `Job Label: ${data.job_type || 'N/A'}\n`;
+                    failureReport += `Stage: ${data.stage || 'N/A'}\n`;
+                    if (data.failed_vendor) failureReport += `Failed Vendor: ${data.failed_vendor}\n`;
+                    if (data.failed_product) failureReport += `Failed Product: ${data.failed_product}\n`;
+                    failureReport += `Started At: ${data.started_at || '--'} | Failed At: ${data.completed_at || '--'}\n\n`;
+                    failureReport += `[FAILURE TRACEBACK / EXCEPTION RATIONALE]\n`;
+                    failureReport += `${data.error_message || 'Process exited with non-zero exit code.'}\n`;
+
+                    errorTraceback.innerText = failureReport;
+                } else {
+                    errorCard.style.display = 'none';
+                }
+            }
+
+            // 6. v4.2 Enterprise Summary Card Update
+            const v42Status = document.getElementById('v42-report-status');
+            if (v42Status) {
+                if (statusStr === 'Active' || statusStr === 'Running' || isRunning) {
+                    v42Status.className = 'badge badge-warning';
+                    v42Status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scraping Active...';
+                } else if (statusStr === 'Completed' || statusStr === 'Success') {
+                    v42Status.className = 'badge badge-success';
+                    v42Status.innerHTML = '<i class="fas fa-circle-check"></i> Scrape Completed';
+                } else if (statusStr === 'Failed') {
+                    v42Status.className = 'badge badge-danger';
+                    v42Status.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Scrape Failed';
+                } else {
+                    v42Status.className = 'badge badge-info';
+                    v42Status.innerHTML = '<i class="fas fa-clock"></i> Standby (Ready to Scrape)';
+                }
+            }
+
+            const v42Brand = document.getElementById('v42-sum-brand');
+            if (v42Brand) v42Brand.innerText = data.current_brand || data.brand || 'All Brands';
+
+
+            const v42Cat = document.getElementById('v42-sum-category');
+            if (v42Cat) v42Cat.innerText = data.current_category || data.category || 'Mobiles';
+
+            const v42Pages = document.getElementById('v42-sum-pages');
+            if (v42Pages) v42Pages.innerText = `${data.pages_crawled || 1} Pages`;
+
+            const v42Raw = document.getElementById('v42-sum-raw');
+            if (v42Raw) v42Raw.innerText = `${data.products_found || 0} Listings`;
+
+            const v42Rej = document.getElementById('v42-sum-rejected');
+            if (v42Rej) v42Rej.innerText = data.rejected_products || 0;
+
+            const v42Dups = document.getElementById('v42-sum-duplicates');
+            if (v42Dups) v42Dups.innerText = data.duplicate_products || 0;
+
+            const v42Hw = document.getElementById('v42-sum-hardware');
+            if (v42Hw) v42Hw.innerText = data.unique_hardware_models || data.products_imported || 0;
+
+            const v42Master = document.getElementById('v42-sum-master');
+            if (v42Master) v42Master.innerText = data.imported_products || data.products_imported || 0;
+
+            const v42Offers = document.getElementById('v42-sum-offers');
+            if (v42Offers) v42Offers.innerText = `${data.products_updated || 0} Offers`;
+
+            const v42Accept = document.getElementById('v42-sum-acceptance');
+            if (v42Accept) {
+                const total = (data.products_found || 1);
+                const acc = Math.min(100, Math.round(((data.products_found - (data.rejected_products || 0)) / total) * 100));
+                v42Accept.innerText = `${acc}%`;
+            }
+
+            const v42Merge = document.getElementById('v42-sum-merge');
+            if (v42Merge) {
+                const total = (data.products_found || 1);
+                const mrg = Math.min(100, Math.round(((data.duplicate_products || 0) / total) * 100));
+                v42Merge.innerText = `${mrg}%`;
+            }
+
+            const v42Run = document.getElementById('v42-sum-runtime');
+            if (v42Run) v42Run.innerText = data.runtime_formatted || '0s';
+
+            // Vendor Coverage Breakdown
+            const covData = data.vendor_counts || {};
+            const ca = document.getElementById('cov-amazon'); if (ca) ca.innerText = covData.amazon || 0;
+            const cf = document.getElementById('cov-flipkart'); if (cf) cf.innerText = covData.flipkart || 0;
+            const cc = document.getElementById('cov-croma'); if (cc) cc.innerText = covData.croma || 0;
+            const cj = document.getElementById('cov-jiomart'); if (cj) cj.innerText = covData.jiomart || 0;
+            const cv = document.getElementById('cov-vijaysales'); if (cv) cv.innerText = covData.vijaysales || 0;
+
+            // 7. Persistent Last Run Summary Card
+            const lr = data.last_run || {};
+            const lrBadge = document.getElementById('last-run-status-badge');
+            if (lrBadge) {
+                lrBadge.innerText = lr.status || statusStr;
+                if ((lr.status || statusStr).includes('Completed') || (lr.status || statusStr).includes('Success')) {
+                    lrBadge.className = 'badge badge-success';
+                } else if ((lr.status || statusStr).includes('Failed') || (lr.status || statusStr).includes('Crashed')) {
+                    lrBadge.className = 'badge badge-danger';
+                } else {
+                    lrBadge.className = 'badge badge-info';
+                }
+            }
+
+            const lrStatus = document.getElementById('lr-status');
+            if (lrStatus) lrStatus.innerText = lr.status || statusStr;
+
+            const lrProducts = document.getElementById('lr-products');
+            if (lrProducts) lrProducts.innerText = `${lr.imported_products || 0} New / ${lr.products_found || 0} Found`;
+
+            const lrRuntime = document.getElementById('lr-runtime');
+            if (lrRuntime) lrRuntime.innerText = lr.runtime_formatted || '0s';
+
+            const lrCompleted = document.getElementById('lr-completed');
+            if (lrCompleted) lrCompleted.innerText = lr.completed_at || '--:--:--';
+
+            const lrPid = document.getElementById('lr-pid');
+            if (lrPid) lrPid.innerText = lr.pid ? `#${lr.pid}` : '--';
+
+            // Also stream activity logs
+            fetchLogs();
+
+        } catch (err) {
+            console.error('Failed to poll scraper status:', err);
+        }
+    }
+
+    // --- v4.2 DYNAMIC INTENT-AWARE UI SWITCHER ---
+    function updateDiscoveryModeUI() {
+        const mode = document.querySelector('input[name="discovery_mode"]:checked')?.value || 'EXACT_PRODUCT';
+
+        const groupExact = document.getElementById('input-group-exact-product');
+        const groupBrand = document.getElementById('input-group-brand');
+        const groupCat = document.getElementById('input-group-category');
+        const groupAdv = document.getElementById('input-group-advanced');
+
+        if (groupExact) groupExact.style.display = (mode === 'EXACT_PRODUCT') ? 'flex' : 'none';
+        if (groupBrand) groupBrand.style.display = (mode === 'BRAND_CATALOG' || mode === 'BRAND_CATEGORY' || mode === 'ADVANCED_DISCOVERY') ? 'flex' : 'none';
+        if (groupCat) groupCat.style.display = (mode === 'CATEGORY_CATALOG' || mode === 'BRAND_CATEGORY' || mode === 'ADVANCED_DISCOVERY') ? 'flex' : 'none';
+        if (groupAdv) groupAdv.style.display = (mode === 'ADVANCED_DISCOVERY') ? 'grid' : 'none';
+    }
+
+    document.querySelectorAll('input[name="discovery_mode"]').forEach(radio => {
+        radio.addEventListener('change', updateDiscoveryModeUI);
+    });
+    updateDiscoveryModeUI();
+
+    // Start Real-Time Polling every 1.5 seconds
+    setInterval(pollScraperStatus, 1500);
+    pollScraperStatus();
+
+
 
     // --- MODULE 7, 8, 9: VALIDATION MODULES ---
     async function loadImageValidation() {
@@ -1453,3 +1754,131 @@ async function loadPipelineExplorer() {
         showToast("Failed to load Pipeline Explorer", "danger");
     }
 }
+
+    // --- v5.0 ENTERPRISE CRAWL CENTER HANDLERS ---
+    document.getElementById('btn-v50-start-crawl')?.addEventListener('click', async () => {
+        const mode = document.querySelector('input[name="discovery_mode"]:checked')?.value || 'EXACT_PRODUCT';
+        const brand = document.getElementById('v42-brand-select')?.value || '';
+        const category = document.getElementById('v42-category-select')?.value || 'Mobiles';
+        const maxPages = document.getElementById('adv-max-pages')?.value || '3';
+
+        try {
+            const res = await fetch('/api/crawl/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode, brand, category, max_pages: maxPages })
+            });
+            const data = await res.json();
+            showToast(`Distributed Crawl Launched [Session: ${data.session?.session_uuid}]`, 'success');
+        } catch (err) {
+            showToast('Failed to start distributed crawl', 'danger');
+        }
+    });
+
+    document.getElementById('btn-v50-pause-workers')?.addEventListener('click', async () => {
+        const res = await fetch('/api/crawl/pause', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message, 'warning');
+    });
+
+    document.getElementById('btn-v50-resume-session')?.addEventListener('click', async () => {
+        const res = await fetch('/api/crawl/session');
+        const data = await res.json();
+        const sess = (data.sessions || [])[0];
+        if (sess && sess.resume_token) {
+            const rRes = await fetch('/api/crawl/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resume_token: sess.resume_token })
+            });
+            const rData = await rRes.json();
+            showToast(rData.message || 'Session Resumed', 'info');
+        } else {
+            showToast('No resumable session found', 'info');
+        }
+    });
+
+    async function pollV50CrawlQueue() {
+        try {
+            const res = await fetch('/api/crawl/queue');
+            const data = await res.json();
+            const q = data.queue || {};
+
+            const qs = document.getElementById('q-search'); if (qs) qs.innerText = q.search_queue || 0;
+            const qc = document.getElementById('q-candidate'); if (qc) qc.innerText = q.candidate_queue || 0;
+            const qp = document.getElementById('q-pdp'); if (qp) qp.innerText = q.pdp_queue || 0;
+            const qsv = document.getElementById('q-save'); if (qsv) qsv.innerText = q.save_queue || 0;
+        } catch (e) {}
+    }
+    setInterval(pollV50CrawlQueue, 2000);
+
+    // --- v5.2 ENTERPRISE VALIDATION CENTER HANDLERS ---
+
+    document.getElementById('btn-trigger-v52-auto-repair')?.addEventListener('click', async () => {
+        try {
+            const res = await fetch('/api/validation/repair', { method: 'POST' });
+            const data = await res.json();
+            showToast(`Auto Repair Engine Completed: Processed ${data.jobs_processed || 0} jobs`, 'success');
+        } catch (err) {
+            showToast('Failed to execute Auto Repair Engine', 'danger');
+        }
+    });
+
+    async function loadV52ValidationCenter() {
+        try {
+            const res = await fetch('/api/validation/specifications?id=1');
+            const data = await res.json();
+            const matrix = data.spec_matrix || {};
+            
+            const box = document.getElementById('v52-spec-matrix-box');
+            if (box) {
+                const keys = Object.keys(matrix);
+                box.innerHTML = keys.map(k => {
+                    const item = matrix[k];
+                    const statusClass = item.status === 'VERIFIED' ? 'badge-success' : item.status === 'CONFLICT' ? 'badge-warning' : 'badge-info';
+                    return `<div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span><strong>${k.toUpperCase()}:</strong> Confidence ${item.confidence}%</span>
+                        <span class="badge ${statusClass}">${item.status}</span>
+                    </div>`;
+                }).join('');
+            }
+        } catch (e) {}
+    }
+    // --- v6.0 ENTERPRISE SYNCHRONIZATION CENTER HANDLERS ---
+    document.getElementById('btn-trigger-v60-sync')?.addEventListener('click', async () => {
+        try {
+            const res = await fetch('/api/sync/start', { method: 'POST' });
+            const data = await res.json();
+            showToast(data.message || 'Continuous Scheduler Started', 'success');
+        } catch (err) {
+            showToast('Failed to start continuous scheduler', 'danger');
+        }
+    });
+
+    async function loadV60SyncCenter() {
+        try {
+            const res = await fetch('/api/product/events?id=1');
+            const data = await res.json();
+            const events = data.events || [];
+            
+            const box = document.getElementById('v60-event-stream-box');
+            if (box) {
+                if (events.length === 0) {
+                    box.innerHTML = '<div style="color: var(--text-dim); padding: 0.5rem;">No historical event changes logged yet. System is monitoring live feeds...</div>';
+                } else {
+                    box.innerHTML = events.map(ev => {
+                        return `<div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span><strong style="color: #a855f7;">${ev.event_type}:</strong> '${ev.old_value}' &rarr; '${ev.new_value}' (${ev.vendor})</span>
+                            <span style="font-size: 0.75rem; color: var(--text-dim);">${ev.created_at}</span>
+                        </div>`;
+                    }).join('');
+                }
+            }
+        } catch (e) {}
+    }
+    loadV60SyncCenter();
+
+
+
+
+

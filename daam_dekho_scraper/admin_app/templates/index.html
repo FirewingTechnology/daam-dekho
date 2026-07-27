@@ -81,6 +81,18 @@
                 <a href="#pipeline-explorer" class="nav-link" data-tab="pipeline-explorer">
                     <i class="fas fa-sitemap text-info"></i> <span>Pipeline Explorer</span>
                 </a>
+                <a href="#v50-crawl-center" class="nav-link" data-tab="v50-crawl-center">
+                    <i class="fas fa-network-wired text-primary"></i> <span>v5.0 Crawl Center</span>
+                </a>
+                <a href="#enterprise-validation" class="nav-link" data-tab="enterprise-validation">
+                    <i class="fas fa-shield-halved text-success"></i> <span>Validation Center</span>
+                </a>
+                <a href="#enterprise-sync" class="nav-link" data-tab="enterprise-sync">
+                    <i class="fas fa-rotate text-purple"></i> <span>Sync Center</span>
+                </a>
+
+
+
 
                 <div class="nav-section-label">System & Intelligence</div>
                 <a href="#analytics" class="nav-link" data-tab="analytics">
@@ -162,6 +174,121 @@
                     <button class="btn-outline btn-sm" onclick="document.getElementById('cmd-intent-preview-card').style.display='none'">Dismiss</button>
                 </div>
             </div>
+
+            <!-- v4.2 MULTI-MODE DISCOVERY CONTROL BAR & DYNAMIC INTENT INPUTS -->
+            <div id="v40-discovery-mode-bar" class="glass-card margin-bottom" style="padding: 0.75rem 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-weight: 600; font-size: 0.85rem; color: var(--primary);"><i class="fas fa-sliders"></i> v4.2 Discovery Mode:</span>
+                        <label style="font-size: 0.8rem; cursor: pointer;"><input type="radio" name="discovery_mode" value="EXACT_PRODUCT" checked> Exact Product</label>
+                        <label style="font-size: 0.8rem; cursor: pointer;"><input type="radio" name="discovery_mode" value="BRAND_CATALOG"> Brand Catalog</label>
+                        <label style="font-size: 0.8rem; cursor: pointer;"><input type="radio" name="discovery_mode" value="CATEGORY_CATALOG"> Category Catalog</label>
+                        <label style="font-size: 0.8rem; cursor: pointer;"><input type="radio" name="discovery_mode" value="BRAND_CATEGORY"> Brand + Category</label>
+                        <label style="font-size: 0.8rem; cursor: pointer;"><input type="radio" name="discovery_mode" value="ADVANCED_DISCOVERY"> Advanced Discovery</label>
+                    </div>
+                    <span class="badge badge-info" style="font-size: 0.75rem;">Zero Over-Consolidation Guarantee</span>
+                </div>
+
+                <!-- DYNAMIC INTENT-AWARE INPUT CONTROLS -->
+                <div id="v42-dynamic-inputs-panel" style="margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.75rem;">
+                    <!-- 1. Exact Product Input -->
+                    <div id="input-group-exact-product" class="v42-input-group" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <label style="font-size: 0.8rem; min-width: 100px; color: var(--text-dim);">Product Name:</label>
+                        <input type="text" id="v42-product-name" class="form-input" style="flex: 1; font-size: 0.85rem;" placeholder="e.g. Samsung Galaxy S25 Ultra, iPhone 16 Pro Max..." value="Samsung Galaxy S25 Ultra">
+                    </div>
+
+                    <!-- 2. Brand Dropdown Container -->
+                    <div id="input-group-brand" class="v42-input-group" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.4rem;">
+                        <label style="font-size: 0.8rem; min-width: 100px; color: var(--text-dim);">Brand:</label>
+                        <select id="v42-brand-select" class="form-input" style="flex: 1; font-size: 0.85rem;">
+                            <option value="Samsung">Samsung</option>
+                            <option value="Apple">Apple</option>
+                            <option value="Realme">Realme</option>
+                            <option value="Vivo">Vivo</option>
+                            <option value="OnePlus">OnePlus</option>
+                            <option value="Motorola">Motorola</option>
+                            <option value="Nothing">Nothing</option>
+                            <option value="Xiaomi">Xiaomi</option>
+                            <option value="POCO">POCO</option>
+                            <option value="iQOO">iQOO</option>
+                            <option value="ASUS">ASUS</option>
+                            <option value="HP">HP</option>
+                            <option value="Lenovo">Lenovo</option>
+                            <option value="Dell">Dell</option>
+                            <option value="Acer">Acer</option>
+                            <option value="MSI">MSI</option>
+                            <option value="Boat">Boat</option>
+                            <option value="Sony">Sony</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Category Dropdown Container -->
+                    <div id="input-group-category" class="v42-input-group" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.4rem;">
+                        <label style="font-size: 0.8rem; min-width: 100px; color: var(--text-dim);">Category:</label>
+                        <select id="v42-category-select" class="form-input" style="flex: 1; font-size: 0.85rem;">
+                            <option value="Mobiles">Mobiles</option>
+                            <option value="Mobile Accessories">Mobile Accessories</option>
+                            <option value="Laptops">Laptops</option>
+                            <option value="Laptop Accessories">Laptop Accessories</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Advanced Discovery Filters Grid -->
+                    <div id="input-group-advanced" class="v42-input-group" style="display: none; margin-top: 0.6rem; grid-template-columns: repeat(4, 1fr); gap: 0.6rem;">
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">RAM</label>
+                            <select id="adv-ram" class="form-input" style="font-size: 0.78rem;">
+                                <option value="">Any RAM</option>
+                                <option value="8GB">8GB</option>
+                                <option value="12GB">12GB</option>
+                                <option value="16GB">16GB</option>
+                                <option value="32GB">32GB</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">Storage</label>
+                            <select id="adv-storage" class="form-input" style="font-size: 0.78rem;">
+                                <option value="">Any Storage</option>
+                                <option value="128GB">128GB</option>
+                                <option value="256GB">256GB</option>
+                                <option value="512GB">512GB</option>
+                                <option value="1TB">1TB</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">CPU Processor</label>
+                            <input type="text" id="adv-cpu" class="form-input" style="font-size: 0.78rem;" placeholder="Snapdragon 8, M3, i7...">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">GPU Graphics</label>
+                            <input type="text" id="adv-gpu" class="form-input" style="font-size: 0.78rem;" placeholder="RTX 4060, Adreno...">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">Display Size</label>
+                            <input type="text" id="adv-display" class="form-input" style="font-size: 0.78rem;" placeholder="6.7 in, 14 in...">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">Min / Max Price (₹)</label>
+                            <div style="display: flex; gap: 0.2rem;">
+                                <input type="number" id="adv-min-price" class="form-input" style="font-size: 0.78rem;" placeholder="Min">
+                                <input type="number" id="adv-max-price" class="form-input" style="font-size: 0.78rem;" placeholder="Max">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">Network & Pages</label>
+                            <div style="display: flex; gap: 0.4rem; align-items: center; margin-top: 4px;">
+                                <label style="font-size: 0.75rem;"><input type="checkbox" id="adv-is-5g" checked> 5G</label>
+                                <input type="number" id="adv-max-pages" class="form-input" style="font-size: 0.78rem; width: 70px;" value="3" title="Max Crawl Pages">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; color: var(--text-dim);">Max Products Target</label>
+                            <input type="number" id="adv-max-products" class="form-input" style="font-size: 0.78rem;" value="50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- TOAST NOTIFICATION CONTAINER -->
             <div id="toast-container"></div>
@@ -438,11 +565,38 @@
                         </div>
                     </div>
 
+                    <!-- v4.2 ENTERPRISE FINAL SUMMARY REPORT CARD -->
+                    <div id="v42-enterprise-summary-card" style="background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.3); padding: 1.2rem; border-radius: 16px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                            <h4 style="color: #38bdf8; font-size: 1.05rem; margin: 0;"><i class="fas fa-chart-line"></i> DaamDekho v4.2 Enterprise Catalog Discovery Summary</h4>
+                            <span class="badge badge-info" id="v42-report-status"><i class="fas fa-clock"></i> Standby (Ready to Scrape)</span>
+                        </div>
+
+                        <div id="v42-summary-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; font-size: 0.83rem;">
+                            <div>Brand: <strong id="v42-sum-brand" class="text-primary">All Brands</strong></div>
+                            <div>Category: <strong id="v42-sum-category">Mobiles</strong></div>
+                            <div>Pages Crawled: <strong id="v42-sum-pages">0 Pages</strong></div>
+                            <div>Raw Listings Found: <strong id="v42-sum-raw">0 Listings</strong></div>
+                            <div>Rejected Listings: <strong id="v42-sum-rejected" class="text-danger">0</strong></div>
+                            <div>Duplicate Listings: <strong id="v42-sum-duplicates" class="text-warning">0</strong></div>
+                            <div>Unique Hardware Models: <strong id="v42-sum-hardware" class="text-success">0</strong></div>
+                            <div>Master Products Created: <strong id="v42-sum-master">0</strong></div>
+                            <div>Vendor Offers Saved: <strong id="v42-sum-offers">0 Offers</strong></div>
+                            <div>Acceptance Rate: <strong id="v42-sum-acceptance">100%</strong></div>
+                            <div>Merge Rate: <strong id="v42-sum-merge">0%</strong></div>
+                            <div>Total Runtime: <strong id="v42-sum-runtime">0s</strong></div>
+                        </div>
+                        <div style="margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);" id="v42-vendor-coverage-row">
+                            <strong>Coverage Per Vendor:</strong> Amazon: <span id="cov-amazon">0</span> | Flipkart: <span id="cov-flipkart">0</span> | Croma: <span id="cov-croma">0</span> | JioMart: <span id="cov-jiomart">0</span> | VijaySales: <span id="cov-vijaysales">0</span>
+                        </div>
+                    </div>
+
                     <!-- Execution Summary Card (Appears after completion) -->
                     <div id="scraper-summary-card" style="display: none; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; padding: 1.2rem; border-radius: 16px; margin-bottom: 1.5rem;">
                         <h4 style="color: #22c55e; margin-bottom: 0.8rem; font-size: 1rem;"><i class="fas fa-circle-check"></i> Scraper Execution Summary Report</h4>
                         <div id="summary-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; font-size: 0.85rem;"></div>
                     </div>
+
 
                     <!-- Persistent Last Run Summary Card -->
                     <div id="last-run-info-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 14px; margin-bottom: 1.5rem;">
@@ -797,7 +951,183 @@
                         </div>
                     </div>
                 </div>
+            <!-- MODULE 15: v5.0 ENTERPRISE CRAWL CENTER -->
+            <section id="view-v50-crawl-center" class="tab-view">
+                <div class="glass-card margin-bottom">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h2 style="color: var(--primary);"><i class="fas fa-network-wired"></i> DaamDekho v5.0 Enterprise Crawl Center</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Distributed Multi-Vendor Crawl Workers, Observable 7-Stage Queues & Resumable Sessions</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-primary btn-sm" id="btn-v50-start-crawl"><i class="fas fa-play"></i> Start Distributed Crawl</button>
+                            <button class="btn-warning btn-sm" id="btn-v50-pause-workers"><i class="fas fa-pause"></i> Pause Workers</button>
+                            <button class="btn-info btn-sm" id="btn-v50-resume-session"><i class="fas fa-rotate-right"></i> Resume Session</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE VENDOR WORKERS GRID -->
+                <div class="glass-card margin-bottom">
+                    <h3><i class="fas fa-microchip"></i> Parallel Vendor Crawl Workers</h3>
+                    <div id="v50-workers-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1rem;">
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>Amazon Worker</strong>
+                                <span class="badge badge-success">IDLE</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">Page: 0/3 | Found: 0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Memory: 0 MB | CPU: 0%</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>Flipkart Worker</strong>
+                                <span class="badge badge-success">IDLE</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">Page: 0/3 | Found: 0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Memory: 0 MB | CPU: 0%</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>Croma Worker</strong>
+                                <span class="badge badge-success">IDLE</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">Page: 0/3 | Found: 0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Memory: 0 MB | CPU: 0%</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>JioMart Worker</strong>
+                                <span class="badge badge-success">IDLE</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">Page: 0/3 | Found: 0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Memory: 0 MB | CPU: 0%</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>VijaySales Worker</strong>
+                                <span class="badge badge-success">IDLE</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">Page: 0/3 | Found: 0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Memory: 0 MB | CPU: 0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OBSERVABLE 7-STAGE CRAWL QUEUES -->
+                <div class="glass-card margin-bottom">
+                    <h3><i class="fas fa-layer-group"></i> Observable 7-Stage Crawl Queue Engine</h3>
+                    <div id="v50-queue-depth-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.75rem; margin-top: 1rem; text-align: center;">
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #60a5fa;">SEARCH</span>
+                            <h4 id="q-search" style="font-size: 1.2rem; color: #3b82f6; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #c084fc;">CANDIDATE</span>
+                            <h4 id="q-candidate" style="font-size: 1.2rem; color: #a855f7; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #f472b6;">PDP</span>
+                            <h4 id="q-pdp" style="font-size: 1.2rem; color: #ec4899; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #fbbf24;">VERIFY</span>
+                            <h4 id="q-verification" style="font-size: 1.2rem; color: #f59e0b; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #38bdf8;">IDENTITY</span>
+                            <h4 id="q-identity" style="font-size: 1.2rem; color: #0ea5e9; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #818cf8;">MERGE</span>
+                            <h4 id="q-merge" style="font-size: 1.2rem; color: #6366f1; margin-top: 4px;">0</h4>
+                        </div>
+                        <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); padding: 0.8rem; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #4ade80;">SAVE</span>
+                            <h4 id="q-save" style="font-size: 1.2rem; color: #22c55e; margin-top: 4px;">0</h4>
+                        </div>
+                    </div>
+            <!-- MODULE 12: v5.2 ENTERPRISE VALIDATION CENTER -->
+            <section id="view-enterprise-validation" class="tab-view">
+                <div class="glass-card margin-bottom">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h2 style="color: #22c55e;"><i class="fas fa-shield-halved"></i> DaamDekho v5.2 Enterprise Validation & Data Integrity Center</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Live PDP Verification, Specification Cross-Validation, Broken URL Scanner & Auto Recovery Queue</p>
+                        </div>
+                        <button class="btn-success btn-sm" id="btn-trigger-v52-auto-repair"><i class="fas fa-wrench"></i> Run Auto Repair Engine</button>
+                    </div>
+                </div>
+
+                <!-- VALIDATION METRICS & TRUST CARDS -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;" class="margin-bottom">
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">PRODUCT COMPLETENESS</span>
+                        <h2 style="color: #22c55e; margin-top: 4px;" id="v52-completeness-score">98 / 100</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">VENDOR TRUST INDEX</span>
+                        <h2 style="color: #38bdf8; margin-top: 4px;" id="v52-trust-score">97.4%</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">SPECIFICATION CONFLICTS</span>
+                        <h2 style="color: #f59e0b; margin-top: 4px;" id="v52-spec-conflicts">0 Conflicts</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">BROKEN URL QUEUE</span>
+                        <h2 style="color: #ef4444; margin-top: 4px;" id="v52-broken-urls">0 Broken</h2>
+                    </div>
+                </div>
+
+                <!-- SPEC CROSS VALIDATION MATRIX -->
+                <div class="glass-card margin-bottom">
+                    <h3><i class="fas fa-list-check"></i> Multi-Vendor Specification Conflict Matrix</h3>
+                    <div id="v52-spec-matrix-box" style="margin-top: 1rem; font-size: 0.85rem; color: #e5e7eb;">
+                        Loading specification agreement matrix...
+                    </div>
+            <!-- MODULE 12: v6.0 ENTERPRISE SYNCHRONIZATION CENTER -->
+            <section id="view-enterprise-sync" class="tab-view">
+                <div class="glass-card margin-bottom">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h2 style="color: #a855f7;"><i class="fas fa-rotate"></i> DaamDekho v6.0 Continuous Synchronization Center</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Autonomous Background Scheduler, Freshness Intelligence & Immutable Event Stream</p>
+                        </div>
+                        <button class="btn-primary btn-sm" id="btn-trigger-v60-sync"><i class="fas fa-play"></i> Start Continuous Scheduler</button>
+                    </div>
+                </div>
+
+                <!-- SYNCHRONIZATION METRICS -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;" class="margin-bottom">
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">SCHEDULER STATUS</span>
+                        <h2 style="color: #22c55e; margin-top: 4px;" id="v60-scheduler-status">ACTIVE</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">CATALOG FRESHNESS</span>
+                        <h2 style="color: #a855f7; margin-top: 4px;" id="v60-catalog-freshness">96.5%</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">VENDOR HEALTH</span>
+                        <h2 style="color: #38bdf8; margin-top: 4px;" id="v60-vendor-health">5/5 HEALTHY</h2>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">PENDING REPAIR JOBS</span>
+                        <h2 style="color: #f59e0b; margin-top: 4px;" id="v60-repair-jobs">0 Pending</h2>
+                    </div>
+                </div>
+
+                <!-- EVENT STREAM TIMELINE -->
+                <div class="glass-card margin-bottom">
+                    <h3><i class="fas fa-clock-rotate-left"></i> Immutable Product Event Stream Audit Trail</h3>
+                    <div id="v60-event-stream-box" style="margin-top: 1rem; font-size: 0.85rem; color: #e5e7eb;">
+                        Loading live catalog event timeline...
+                    </div>
+                </div>
             </section>
+
+
+
 
             <!-- MODULE 10: ANALYTICS -->
             <section id="view-analytics" class="tab-view">

@@ -167,38 +167,6 @@ export const searchProducts = async (filters) => {
 };
 
 export const getProductBySlug = async (slug) => {
-  const product = await get(`SELECT *, COALESCE(canonical_title, title) as title, title as raw_vendor_title, id as slug, base_image, base_image as image_url FROM products_master WHERE id = ?`, [slug]);
-
-
-
-
-
-
-
-  const totalSql = `SELECT COUNT(*) as total FROM (${sql}) as _subq`;
-  const totalResult = await get(totalSql, params);
-
-  sql += ` LIMIT ? OFFSET ?`;
-  params.push(limit, offset);
-
-  const rawProducts = await query(sql, params);
-  const products = rawProducts.map(p => ({
-    ...p,
-    image_urls: p.base_image ? [p.base_image] : []
-  }));
-
-  return {
-    products,
-    pagination: {
-        total: totalResult.total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalResult.total / limit)
-    }
-  };
-};
-
-export const getProductBySlug = async (slug) => {
   const product = await get(`SELECT *, id as slug, base_image, base_image as image_url FROM products_master WHERE id = ?`, [slug]);
   if (!product) return null;
 

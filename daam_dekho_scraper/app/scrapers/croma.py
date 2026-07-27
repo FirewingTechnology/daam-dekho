@@ -13,15 +13,11 @@ class CromaScraper(BaseScraper):
         products = []
         try:
             self.setup_driver()
-            self.logger.info("Loading Croma homepage...")
-            self.safe_get("https://www.croma.com/")
-            time.sleep(2)
-
-            # Search
-            search_box = self.driver.find_element("id", "search")
-            search_box.send_keys(query)
-            search_box.send_keys("\n")
+            search_url = f"https://www.croma.com/searchB?q={query.replace(' ', '%20')}%3Arelevance"
+            self.logger.info(f"Navigating to Croma search URL: {search_url}")
+            self.safe_get(search_url)
             time.sleep(3)
+
 
             soup = BeautifulSoup(self.driver.page_source, 'lxml')
             items = soup.select("li.product-item")

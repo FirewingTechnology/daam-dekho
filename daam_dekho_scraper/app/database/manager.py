@@ -169,6 +169,312 @@ class DatabaseManager:
                 )
             ''')
 
+            # 8. v5.0 Enterprise Crawl Sessions Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS crawl_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_uuid TEXT UNIQUE NOT NULL,
+                    discovery_mode TEXT NOT NULL,
+                    brand TEXT,
+                    category TEXT,
+                    vendors TEXT,
+                    status TEXT DEFAULT 'ACTIVE',
+                    resume_token TEXT UNIQUE,
+                    max_pages INTEGER DEFAULT 3,
+                    max_products INTEGER DEFAULT 50,
+                    pages_crawled INTEGER DEFAULT 0,
+                    products_found INTEGER DEFAULT 0,
+                    accepted_count INTEGER DEFAULT 0,
+                    rejected_count INTEGER DEFAULT 0,
+                    duplicate_count INTEGER DEFAULT 0,
+                    master_created INTEGER DEFAULT 0,
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP
+                )
+            ''')
+
+            # 9. v5.0 Enterprise Crawl Workers Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS crawl_workers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    worker_id TEXT UNIQUE NOT NULL,
+                    session_uuid TEXT NOT NULL,
+                    vendor_name TEXT NOT NULL,
+                    status TEXT DEFAULT 'IDLE',
+                    current_page INTEGER DEFAULT 1,
+                    total_pages INTEGER DEFAULT 1,
+                    items_found INTEGER DEFAULT 0,
+                    accepted INTEGER DEFAULT 0,
+                    rejected INTEGER DEFAULT 0,
+                    duplicates INTEGER DEFAULT 0,
+                    current_stage TEXT DEFAULT 'Initialized',
+                    memory_mb REAL DEFAULT 0.0,
+                    cpu_percent REAL DEFAULT 0.0,
+                    last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (session_uuid) REFERENCES crawl_sessions (session_uuid)
+                )
+            ''')
+
+            # 10. v5.0 Enterprise Candidate Cache Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS candidate_cache (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    url_hash TEXT UNIQUE NOT NULL,
+                    url TEXT NOT NULL,
+                    vendor TEXT NOT NULL,
+                    sku TEXT,
+                    canonical_url TEXT,
+                    product_hash TEXT,
+                    status TEXT DEFAULT 'SEEN',
+                    first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 11. v5.0 Enterprise Crawl Statistics Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS crawl_statistics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_uuid TEXT NOT NULL,
+                    vendor_name TEXT NOT NULL,
+                    pages_crawled INTEGER DEFAULT 0,
+                    pdp_opened INTEGER DEFAULT 0,
+                    raw_listings INTEGER DEFAULT 0,
+                    accepted_listings INTEGER DEFAULT 0,
+                    rejected_listings INTEGER DEFAULT 0,
+                    duplicate_listings INTEGER DEFAULT 0,
+                    hardware_models INTEGER DEFAULT 0,
+                    master_products INTEGER DEFAULT 0,
+                    vendor_offers INTEGER DEFAULT 0,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 12. v5.2 Product Validation Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_validation (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    completeness_score INTEGER DEFAULT 100,
+                    verification_status TEXT DEFAULT 'VERIFIED',
+                    pdp_verified INTEGER DEFAULT 1,
+                    last_verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 13. v5.2 Specification Validation Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS specification_validation (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    spec_key TEXT NOT NULL,
+                    status TEXT DEFAULT 'VERIFIED',
+                    conflict_details TEXT,
+                    confidence_score REAL DEFAULT 100.0,
+                    last_checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 14. v5.2 Image Validation Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS image_validation (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    hero_image_url TEXT NOT NULL,
+                    color_match_status TEXT DEFAULT 'MATCHED',
+                    is_cdn_healthy INTEGER DEFAULT 1,
+                    verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 15. v5.2 Vendor Coverage Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS vendor_coverage (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    total_vendors_expected INTEGER DEFAULT 5,
+                    vendors_found_count INTEGER DEFAULT 1,
+                    coverage_pct REAL DEFAULT 20.0,
+                    missing_vendors TEXT,
+                    last_calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 16. v5.2 Broken URLs Queue Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS broken_urls (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    vendor_product_id INTEGER NOT NULL,
+                    url TEXT NOT NULL,
+                    vendor TEXT NOT NULL,
+                    error_reason TEXT DEFAULT '404 / Broken Link',
+                    status TEXT DEFAULT 'PENDING_RECOVERY',
+                    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 17. v5.2 Recovery Jobs Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS recovery_jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_type TEXT NOT NULL,
+                    target_id INTEGER,
+                    status TEXT DEFAULT 'PENDING',
+                    retry_count INTEGER DEFAULT 0,
+                    result_message TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP
+                )
+            ''')
+
+            # 18. v5.2 Validation History Table (Append-Only Audit Log)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS validation_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER,
+                    action_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    rationale TEXT,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 19. v5.2 Product Quality Index Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_quality (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER UNIQUE NOT NULL,
+                    quality_score INTEGER DEFAULT 95,
+                    trust_score INTEGER DEFAULT 98,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 20. v6.0 Product Lifecycle Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_lifecycle (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER UNIQUE NOT NULL,
+                    state TEXT DEFAULT 'NEW',
+                    reason TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 21. v6.0 Immutable Product Events Stream Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    event_type TEXT NOT NULL,
+                    old_value TEXT,
+                    new_value TEXT,
+                    vendor TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 22. v6.0 Sync Jobs Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS sync_jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_type TEXT NOT NULL,
+                    target_id INTEGER,
+                    status TEXT DEFAULT 'PENDING',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP
+                )
+            ''')
+
+            # 23. v6.0 Sync History Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS sync_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id INTEGER,
+                    vendor TEXT,
+                    products_synced INTEGER DEFAULT 0,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 24. v6.0 Vendor Sync Health Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS vendor_sync (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    vendor TEXT UNIQUE NOT NULL,
+                    last_sync_at TIMESTAMP,
+                    next_sync_at TIMESTAMP,
+                    failed_attempts INTEGER DEFAULT 0,
+                    health_status TEXT DEFAULT 'HEALTHY',
+                    latency_ms INTEGER DEFAULT 150
+                )
+            ''')
+
+            # 25. v6.0 Refresh Schedule Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS refresh_schedule (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER UNIQUE NOT NULL,
+                    interval_minutes INTEGER DEFAULT 60,
+                    last_refreshed_at TIMESTAMP,
+                    next_refresh_at TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 26. v6.0 Product Freshness Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_freshness (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER UNIQUE NOT NULL,
+                    freshness_score INTEGER DEFAULT 100,
+                    last_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (product_id) REFERENCES products_master (id)
+                )
+            ''')
+
+            # 27. v6.0 Catalog Health Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS catalog_health (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    total_products INTEGER DEFAULT 0,
+                    freshness_avg REAL DEFAULT 100.0,
+                    health_status TEXT DEFAULT 'OPTIMAL',
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 28. v6.0 Product Alerts Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS product_alerts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    alert_type TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    status TEXT DEFAULT 'ACTIVE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 29. v6.0 Scheduler Queue Table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS scheduler_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    task_name TEXT NOT NULL,
+                    priority INTEGER DEFAULT 1,
+                    status TEXT DEFAULT 'QUEUED',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+
+
+
             # 8. Product Graph Master Table (v2.4)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS product_graph (

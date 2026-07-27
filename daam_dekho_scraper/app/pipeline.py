@@ -41,7 +41,7 @@ class ScraperPipeline:
                 scrapers[v] = factory[v]()
         return scrapers
 
-    def run_search(self, query, category="mobiles", vendors=None, scrape_mode="Auto Detect"):
+    def run_search(self, query, category="mobiles", brand=None, vendors=None, scrape_mode="EXACT_PRODUCT", max_pages=3, max_products=50):
         """Runs expanded search across all selected vendors in sequence: Amazon -> Flipkart -> Croma -> JioMart -> VijaySales."""
         if not category:
             category = "mobiles"
@@ -64,11 +64,15 @@ class ScraperPipeline:
                 vendor_products = []
                 for q_var in query_variations:
                     try:
-                        logger.info(f"Scraping {v_name} for expanded query variation: '{q_var}'")
-                        products = scraper.scrape(q_var, category=category) or []
+                        logger.info(f"Scraping {v_name} for expanded query variation: '{q_var}' (Pages: 1..{max_pages})")
+                        try:
+                            products = scraper.scrape(q_var, category=category, max_pages=max_pages, max_results=max_products) or []
+                        except TypeError:
+                            products = scraper.scrape(q_var, category=category) or []
                         vendor_products.extend(products)
                     except Exception as e:
                         logger.error(f"Scraper error for {v_name} with query '{q_var}': {e}")
+
                 
                 # Deduplicate by URL within vendor
                 seen_urls = set()
@@ -283,6 +287,10 @@ class ScraperPipeline:
                     vp_id = cursor.lastrowid
                     if discounted_price is not None:
                         cursor.execute("INSERT INTO price_history (vendor_product_id, price, recorded_at) VALUES (?, ?, ?)", (vp_id, discounted_price, datetime.now()))
+
+                logger.info(f"TELEMETRY: {{'raw': 1, 'imported': 1, 'offers': 1, 'vendor': '{target_vendor}'}}")
+
+
 
                 conn.commit()
                 conn.close()

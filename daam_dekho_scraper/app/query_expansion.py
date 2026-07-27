@@ -26,21 +26,14 @@ class QueryExpansionEngine:
         elif "iphone" in q_lower and "apple" not in q_lower:
             variations.append(f"Apple {clean_q}")
 
-        # 2. Spec/Variant expansions for Family Mode or Auto Detect
-        if scrape_mode in ["Product Family", "Auto Detect"]:
-            if "s24 ultra" in q_lower or "s23 ultra" in q_lower or "s25 ultra" in q_lower:
-                base = re.sub(r'\b(256gb|512gb|1tb|12gb)\b', '', clean_q, flags=re.IGNORECASE).strip()
-                variations.extend([
-                    f"{base} 256GB",
-                    f"{base} 512GB"
-                ])
-            elif "iphone 15" in q_lower or "iphone 16" in q_lower or "iphone 17" in q_lower:
-                base = re.sub(r'\b(128gb|256gb|512gb|1tb)\b', '', clean_q, flags=re.IGNORECASE).strip()
-                variations.extend([
-                    f"{base} 128GB",
-                    f"{base} 256GB",
-                    f"{base} 512GB"
-                ])
+        if "t5x" in q_lower or "vivo t5x" in q_lower:
+            variations.extend([
+                "Vivo T5x 5G",
+                "Vivo T5x",
+                "Vivo T5x 5G 8GB",
+                "Vivo T5x 5G 256GB",
+                "Vivo T5x 5G 8GB 256GB"
+            ])
 
         # Deduplicate while preserving order
         seen = set()
@@ -52,5 +45,6 @@ class QueryExpansionEngine:
                 unique_variations.append(v_clean)
                 
         return unique_variations
+
 
 query_expansion_engine = QueryExpansionEngine()
