@@ -2,7 +2,7 @@ import { query, get } from '../utils/db.js';
 
 export const getHomeData = async () => {
   const categories = await query(`SELECT DISTINCT category FROM products_master LIMIT 8`);
-  
+
   const trendingDeals = await query(`
     SELECT pm.id, pm.title, pm.brand, pm.category, pm.id as slug, pm.base_image, pm.base_image as image_url, 
            MIN(vp.price) as discounted_Price, MAX(vp.mrp) as price, MAX(vp.discount_percent) as discount_percent,
@@ -86,13 +86,8 @@ export const searchProducts = async (filters) => {
 
   if (q) {
     const typoMap = {
-      'iphne': 'iphone',
-      'ifone': 'iphone',
-      'ipone': 'iphone',
-      'samsng': 'samsung',
-      'samung': 'samsung',
-      'aple': 'apple',
-      'appl': 'apple'
+      'iphne': 'iphone', 'ifone': 'iphone', 'ipone': 'iphone',
+      'samsng': 'samsung', 'samung': 'samsung', 'aple': 'apple', 'appl': 'apple'
     };
     const keywords = q.trim().split(/\s+/).map(w => typoMap[w.toLowerCase()] || w);
     keywords.forEach(kw => {
@@ -105,7 +100,7 @@ export const searchProducts = async (filters) => {
     // Handle both singular (Mobile) and plural (Mobiles) in DB
     sql += ` AND (LOWER(pm.category) = LOWER(?) OR LOWER(pm.category) = LOWER(?) OR LOWER(pm.category) = LOWER(?) )`;
     const singular = category.replace(/s$/i, '');
-    const plural   = category.replace(/s$/i, '') + 's';
+    const plural = category.replace(/s$/i, '') + 's';
     params.push(category, singular, plural);
   }
   if (brands) {
@@ -136,11 +131,11 @@ export const searchProducts = async (filters) => {
 
   // Dynamic Database-Driven Search Ranking Rules (Zero Hardcoded Scores)
   switch (resolvedSort) {
-    case 'price_low':  sql += ` ORDER BY discounted_Price ASC`;  break;
+    case 'price_low': sql += ` ORDER BY discounted_Price ASC`; break;
     case 'price_high': sql += ` ORDER BY discounted_Price DESC`; break;
-    case 'discount':   sql += ` ORDER BY discount_percent DESC`; break;
-    case 'latest':     sql += ` ORDER BY pm.created_at DESC`;    break;
-    default:           sql += ` ORDER BY ranking_weight DESC, rating DESC, pm.id ASC`;
+    case 'discount': sql += ` ORDER BY discount_percent DESC`; break;
+    case 'latest': sql += ` ORDER BY pm.created_at DESC`; break;
+    default: sql += ` ORDER BY ranking_weight DESC, rating DESC, pm.id ASC`;
   }
 
   const totalSql = `SELECT COUNT(*) as total FROM (${sql}) as _subq`;
@@ -158,10 +153,10 @@ export const searchProducts = async (filters) => {
   return {
     products,
     pagination: {
-        total: totalResult.total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalResult.total / limit)
+      total: totalResult.total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(totalResult.total / limit)
     }
   };
 };
@@ -185,7 +180,6 @@ export const getProductBySlug = async (slug) => {
 
   const variants = await query(`SELECT * FROM product_variants WHERE product_id = ?`, [product.id]);
 
-  
   const vendorsMap = {};
   const allSpecs = {};
 
@@ -193,7 +187,7 @@ export const getProductBySlug = async (slug) => {
     // Collect specs from all variants
     const variantSpecs = await query(`SELECT spec_key, spec_value FROM product_specifications WHERE variant_id = ?`, [variant.id]);
     variantSpecs.forEach(s => {
-        if (!allSpecs[s.spec_key]) allSpecs[s.spec_key] = s.spec_value;
+      if (!allSpecs[s.spec_key]) allSpecs[s.spec_key] = s.spec_value;
     });
 
     const variantVendors = await query(`
@@ -204,41 +198,41 @@ export const getProductBySlug = async (slug) => {
       WHERE vp.variant_id = ?
       ORDER BY vp.price ASC
     `, [variant.id]);
-    
-    variant.vendors = variantVendors.map(v => {
-        try {
-            v.offers = v.offers ? JSON.parse(v.offers) : [];
-        } catch (e) {
-            v.offers = v.offers ? [v.offers] : [];
-        }
-        
-        // Normalize vendor product URL fields to populate all aliases consistently
-        const rawUrl = v.url || v.product_url || v.product_link || v.link || v.affiliatelink || '';
-        let cleanUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
-        if (cleanUrl && cleanUrl !== '#' && cleanUrl !== 'N/A') {
-          if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-            cleanUrl = `https://${cleanUrl}`;
-          }
-        } else {
-          cleanUrl = '';
-        }
-        v.url = cleanUrl;
-        v.product_url = cleanUrl;
-        v.product_link = cleanUrl;
-        v.link = cleanUrl;
-        v.affiliatelink = cleanUrl;
 
-        // Flatten for frontend Info/Prices component expectation
-        // We use the vendor name as key, and if multiple variants exist, 
-        // the cheapest one for that vendor will be kept if we iterate properly.
-        const vendorKey = v.vendor_name.toLowerCase();
-        if (!vendorsMap[vendorKey] || v.discounted_Price < vendorsMap[vendorKey].discounted_Price) {
-            vendorsMap[vendorKey] = v;
+    variant.vendors = variantVendors.map(v => {
+      try {
+        v.offers = v.offers ? JSON.parse(v.offers) : [];
+      } catch (e) {
+        v.offers = v.offers ? [v.offers] : [];
+      }
+
+      // Normalize vendor product URL fields to populate all aliases consistently
+      const rawUrl = v.url || v.product_url || v.product_link || v.link || v.affiliatelink || '';
+      let cleanUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+      if (cleanUrl && cleanUrl !== '#' && cleanUrl !== 'N/A') {
+        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+          cleanUrl = `https://${cleanUrl}`;
         }
-        
-        return v;
+      } else {
+        cleanUrl = '';
+      }
+      v.url = cleanUrl;
+      v.product_url = cleanUrl;
+      v.product_link = cleanUrl;
+      v.link = cleanUrl;
+      v.affiliatelink = cleanUrl;
+
+      // Flatten for frontend Info/Prices component expectation
+      // We use the vendor name as key, and if multiple variants exist, 
+      // the cheapest one for that vendor will be kept if we iterate properly.
+      const vendorKey = v.vendor_name.toLowerCase();
+      if (!vendorsMap[vendorKey] || v.discounted_Price < vendorsMap[vendorKey].discounted_Price) {
+        vendorsMap[vendorKey] = v;
+      }
+
+      return v;
     });
-    
+
     // Get price history for the best vendor of this variant
     if (variant.vendors.length > 0) {
       variant.priceHistory = await query(`
@@ -285,6 +279,7 @@ export const getBrands = async () => {
   const result = await query(`SELECT DISTINCT brand FROM products_master WHERE brand IS NOT NULL`);
   return result.map(r => r.brand);
 };
+
 export const getFilterOptions = async (category) => {
   let whereClause = '';
   const params = [];
@@ -375,4 +370,3 @@ export const getSitemapXml = async (baseUrl = 'http://localhost:5173') => {
   xml += `</urlset>`;
   return xml;
 };
-
