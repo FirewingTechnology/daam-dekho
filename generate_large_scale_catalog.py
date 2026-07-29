@@ -25,7 +25,7 @@ CDN_IMAGES = {
         "https://m.media-amazon.com/images/I/61bK6PMOC3L._SL1500_.jpg"
     ],
     "Laptops": [
-        "https://m.media-amazon.com/images/I/71z3B3f+o1L._SL1500_.jpg",
+        "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1000&q=80",
         "https://m.media-amazon.com/images/I/71jG+e7roXL._SL1500_.jpg",
         "https://m.media-amazon.com/images/I/81P58xkW5dL._SL1500_.jpg"
     ],

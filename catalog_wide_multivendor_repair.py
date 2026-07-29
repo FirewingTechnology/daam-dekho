@@ -117,7 +117,7 @@ def run_enterprise_catalog_repair():
         items = group["items"]
 
         # Base Image from first available URL/item
-        base_image = "https://m.media-amazon.com/images/I/71z3B3f+o1L._SL1500_.jpg"
+        base_image = "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&q=80"
 
         # Create Master Product
         cur.execute("""
