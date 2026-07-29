@@ -369,9 +369,14 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
                           )}
 
                           <img
-                            src={product.base_image || product.image_url || product.image?.thumbnail || "https://via.placeholder.com/150"}
+                            src={product.base_image || product.image || product.image_url || product.image?.thumbnail || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80"}
                             alt={product.title}
+                            referrerPolicy="no-referrer"
                             className="w-20 h-20 object-contain mb-2 hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+                            }}
                           />
 
                           <Link to={`/product/${product.product_id || product.id || product._id}`} title={product.title || product.name}>

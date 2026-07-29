@@ -14,16 +14,22 @@ const ProductCard = ({ product }) => {
     return parseFloat(cleaned) || 0;
   };
 
-  // Get image URL - try multiple field names (but skip placeholder URLs)
+  // Get image URL - try multiple field names
   const getImageUrl = () => {
     const valid = (url) => typeof url === 'string' && url.trim() !== '' && (url.startsWith('http') || url.startsWith('/'));
     
     if (valid(product.base_image)) return product.base_image;
+    if (valid(product.image) && typeof product.image === 'string') return product.image;
     if (valid(product.image_url)) return product.image_url;
+    if (valid(product.mainImage)) return product.mainImage;
     if (valid(product.image?.thumbnail)) return product.image.thumbnail;
     
     if (Array.isArray(product.image_urls) && product.image_urls.length > 0 && valid(product.image_urls[0])) {
       return product.image_urls[0];
+    }
+
+    if (Array.isArray(product.images) && product.images.length > 0 && valid(product.images[0])) {
+      return product.images[0];
     }
 
     if (Array.isArray(product.image?.urls) && product.image.urls.length > 0 && valid(product.image.urls[0])) {
@@ -32,7 +38,6 @@ const ProductCard = ({ product }) => {
     
     return null;
   };
-
 
   // Escape XML special characters
   const escapeXml = (str) => {
@@ -68,11 +73,9 @@ const ProductCard = ({ product }) => {
       </svg>
     `;
     
-    // Encode SVG to base64 with proper UTF-8 handling
     try {
       return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
     } catch {
-      // Fallback to simple placeholder if encoding fails
       return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjgwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjI4MCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTQwIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOTk5IiBzdHlsZT0idGV4dC1hbmNob3I6bWlkZGxlIj5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
     }
   };
@@ -112,11 +115,12 @@ const ProductCard = ({ product }) => {
         <img
           src={
             imgError 
-              ? (product.base_image || product.image_url || generatePlaceholderImage())
+              ? generatePlaceholderImage()
               : (imageUrl || generatePlaceholderImage())
           }
           alt={product.title || 'Product'}
           className="w-full h-40 object-contain blend-soft"
+          referrerPolicy="no-referrer"
           onError={() => {
             if (!imgError) setImgError(true);
           }}

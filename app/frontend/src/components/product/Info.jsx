@@ -98,19 +98,27 @@ const Info = ({ product = {}, formatPrice }) => {
   const { vendorName, originalPrice, discountPrice, rating, vendorLink } = getPriceData();
   const { title = "" } = product;
   const images =
-    product.image_urls ||
+    (Array.isArray(product.images) && product.images.length > 0 && product.images) ||
+    (Array.isArray(product.image_urls) && product.image_urls.length > 0 && product.image_urls) ||
     product.image?.urls ||
-    (product.image_url ? [product.image_url] : []);
+    (product.base_image ? [product.base_image] : (product.image ? [product.image] : (product.image_url ? [product.image_url] : [])));
+
+  const heroImage = displayIMG || product?.base_image || product?.image || product?.image_url || (Array.isArray(images) && images.length > 0 ? images[0] : null);
 
   return (
     <div className="bg-white">
       <div className="space-y-6">
         <div className="relative group overflow-hidden rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-4 min-h-[300px]">
-          {displayIMG || product?.image_url ? (
+          {heroImage ? (
             <img
-              src={displayIMG || product?.image_url}
+              src={heroImage}
               alt={title || "product"}
+              referrerPolicy="no-referrer"
               className="max-w-full max-h-[400px] object-contain transition-transform duration-500 group-hover:scale-110"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+              }}
             />
           ) : (
             <div className="w-full h-64 flex items-center justify-center text-gray-400">
@@ -127,7 +135,7 @@ const Info = ({ product = {}, formatPrice }) => {
                 <div
                   key={i}
                   className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-200 ${
-                    (displayIMG || product?.image_url) === url
+                    heroImage === url
                       ? "border-blue-500 shadow-md scale-105"
                       : "border-gray-200 hover:border-gray-400"
                   }`}
@@ -136,6 +144,7 @@ const Info = ({ product = {}, formatPrice }) => {
                   <img
                     src={url}
                     alt={`thumbnail-${i}`}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-contain p-1"
                   />
                 </div>

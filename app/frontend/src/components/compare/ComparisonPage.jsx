@@ -124,9 +124,14 @@ const ComparisonPage = () => {
                 {/* Product Image */}
                 <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                   <img
-                    src={product.image || product.image_urls?.[0] || product.image?.thumbnail || 'https://via.placeholder.com/300x280?text=No+Image'}
+                    src={product.base_image || product.image || product.image_url || product.image_urls?.[0] || product.image?.thumbnail || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80'}
                     alt={product.title || product.name}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-contain p-4"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+                    }}
                   />
                 </div>
 

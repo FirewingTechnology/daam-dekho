@@ -176,8 +176,8 @@ class AmazonMobileScraper:
                 for img in thumbs:
                     src = img.get("src") or img.get("data-src")
                     if src and src.startswith('http') and 'placeholder' not in src.lower():
-                        # Amazon thumbnails are usually small, swap with original resolution if possible
-                        high_res = re.sub(r"\._AC_.*_\.", ".", src)
+                        # Amazon thumbnails: safely swap sizing modifier to high resolution
+                        high_res = re.sub(r'\._AC_[^.]*_\.|\._SL\d+_|\._SX\d+_|\._SY\d+_', '._SL1000_.', src)
                         if high_res not in images:
                             images.append(high_res)
 

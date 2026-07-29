@@ -145,10 +145,16 @@ export const searchProducts = async (filters) => {
   params.push(limit, offset);
 
   const rawProducts = await query(sql, params);
-  const products = rawProducts.map(p => ({
-    ...p,
-    image_urls: p.base_image ? [p.base_image] : []
-  }));
+  const products = rawProducts.map(p => {
+    const img = p.base_image || p.image_url || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+    return {
+      ...p,
+      base_image: img,
+      image: img,
+      image_url: img,
+      image_urls: [img]
+    };
+  });
 
   return {
     products,
