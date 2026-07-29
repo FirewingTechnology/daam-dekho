@@ -192,22 +192,26 @@ export const getProductBySlug = async (slug) => {
   product.reviews = ratingData?.reviews || 148;
   product.review_count = product.reviews;
 
-  // Query Vendor Coverage
-  const covData = await get(`SELECT * FROM vendor_coverage WHERE product_id = ?`, [product.id]);
-  if (covData) {
-    try {
-      covData.missing_vendors = JSON.parse(covData.missing_vendors || '[]');
-    } catch {
-      covData.missing_vendors = [];
+  // Query Vendor Coverage safely
+  try {
+    const covData = await get(`SELECT * FROM vendor_coverage WHERE product_id = ?`, [product.id]);
+    if (covData) {
+      try { covData.missing_vendors = JSON.parse(covData.missing_vendors || '[]'); } catch { covData.missing_vendors = []; }
+      product.vendor_coverage = covData;
+    } else {
+      product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 1, coverage_pct: 20.0, missing_vendors: [] };
     }
-    product.vendor_coverage = covData;
-  } else {
+  } catch (e) {
     product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 1, coverage_pct: 20.0, missing_vendors: [] };
   }
 
-  // Query Completeness Score
-  const valData = await get(`SELECT completeness_score FROM product_validation WHERE product_id = ?`, [product.id]);
-  const compScore = valData?.completeness_score || 95;
+  // Query Completeness Score safely
+  let compScore = 95;
+  try {
+    const valData = await get(`SELECT completeness_score FROM product_validation WHERE product_id = ?`, [product.id]);
+    if (valData?.completeness_score) compScore = valData.completeness_score;
+  } catch (e) {}
+
   product.completeness_score = {
     overall_score: compScore,
     vendor_coverage_score: Math.min(100, (product.vendor_coverage?.vendors_found_count || 1) * 20),
