@@ -12,10 +12,14 @@ class HardwareIdentityEngine:
         extracted_brand = (brand or entities.get('brand') or 'Generic').strip().title()
         raw_model = (entities.get('model') or '').strip().upper()
 
-        # Model Alias Normalization (e.g. SM-S931B -> S25 ULTRA, Galaxy S25 Ultra -> S25 ULTRA)
-        model = raw_model
+        # Model Alias Normalization & Brand Prefix Removal
+        model = re.sub(r'^(?:' + re.escape(extracted_brand.upper()) + r')\s*', '', raw_model).strip()
+        if not model:
+            model = raw_model
+
         if "S25 ULTRA" in (title or '').upper() or "SM-S931B" in (title or '').upper():
             model = "S25 ULTRA"
+
 
         ram = (entities.get('ram') or 'N/A').strip().upper()
         storage = (entities.get('storage') or 'N/A').strip().upper()

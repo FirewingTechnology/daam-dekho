@@ -208,6 +208,31 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
 
       <div className="maxscreen screen-margin">
         
+        {/* Breadcrumb Navigation & Controls */}
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-2 font-bold">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-primary-dark transition"
+            >
+              ← Back
+            </button>
+            <span>/</span>
+            <Link to="/" className="hover:text-primary-dark transition">Home</Link>
+            <span>/</span>
+            <Link to="/products" className="hover:text-primary-dark transition">Products</Link>
+            <span>/</span>
+            <span className="text-gray-900 dark:text-white font-extrabold">Compare</span>
+          </div>
+
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition font-bold"
+          >
+            🏠 Home
+          </button>
+        </div>
+
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
@@ -242,6 +267,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
             </button>
           </div>
         </div>
+
 
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6 border-b border-gray-200 dark:border-gray-800">
@@ -590,8 +616,9 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
                                       </a>
                                     ) : (
                                       <div key={vIdx} className="w-full py-1 px-2 text-[10px] text-gray-500 border border-gray-200 dark:border-gray-800 rounded-lg">
-                                        {v.name}: ₹{v.price}
+                                        {v.name}: ₹{Number(v.price).toLocaleString("en-IN")}
                                       </div>
+
                                     )
                                   ))
                                 ) : (

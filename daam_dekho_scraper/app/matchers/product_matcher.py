@@ -34,6 +34,52 @@ class ProductMatcher:
         ent_a = self.extract_entities(title_a, specs_a, category=cat_a, brand=prod_a.get('brand'))
         ent_b = self.extract_entities(title_b, specs_b, category=cat_b, brand=prod_b.get('brand'))
 
+        # 0. Accessory & Sub-Variant Suffix Guards
+        acc_keywords = ['case', 'cover', 'tempered', 'screen guard', 'screen protector', 'adapter', 'charger', 'cable', 'skin', 'wrap', 'pouch', 'holder', 'strap', 'sleeve', 'glass']
+        is_acc_a = any(kw in title_a.lower() for kw in acc_keywords)
+        is_acc_b = any(kw in title_b.lower() for kw in acc_keywords)
+        if is_acc_a != is_acc_b:
+            return 0, f"Device vs Accessory Mismatch ('{title_a}' vs '{title_b}')"
+
+        def get_accessory_type(t):
+            tl = t.lower()
+            if any(k in tl for k in ['case', 'cover', 'skin', 'wrap', 'pouch', 'holder', 'sleeve']): return 'CASE'
+            if any(k in tl for k in ['tempered', 'screen guard', 'screen protector', 'glass']): return 'PROTECTOR'
+            if any(k in tl for k in ['adapter', 'charger', 'power']): return 'CHARGER'
+            if 'cable' in tl: return 'CABLE'
+            return 'GENERIC_ACC'
+
+        if is_acc_a and is_acc_b:
+            type_a = get_accessory_type(title_a)
+            type_b = get_accessory_type(title_b)
+            if type_a != type_b:
+                return 0, f"Accessory Sub-Type Mismatch ({type_a} vs {type_b})"
+            if type_a == 'CASE':
+                mats = ['silicone', 'armor', 'leather', 'transparent', 'clear', 'magnetic', 'wallet', 'flip']
+                mat_a = [m for m in mats if m in title_a.lower()]
+                mat_b = [m for m in mats if m in title_b.lower()]
+                if mat_a and mat_b and set(mat_a) != set(mat_b):
+                    return 0, f"Case Type Mismatch ({mat_a} vs {mat_b})"
+
+        def get_variant_suffix(t):
+            tl = t.lower()
+            if 'pro max' in tl or 'promax' in tl: return 'PRO_MAX'
+            if 'pro+' in tl or 'pro plus' in tl: return 'PRO_PLUS'
+            if 'pro' in tl: return 'PRO'
+            if 'plus' in tl: return 'PLUS'
+            if 'ultra' in tl: return 'ULTRA'
+            if 'fe' in tl: return 'FE'
+            if 'lite' in tl: return 'LITE'
+            if 'mini' in tl: return 'MINI'
+            if 'fold' in tl: return 'FOLD'
+            if 'flip' in tl: return 'FLIP'
+            return 'BASE'
+
+        suf_a = get_variant_suffix(title_a)
+        suf_b = get_variant_suffix(title_b)
+        if suf_a != suf_b:
+            return 0, f"Variant Suffix Mismatch ({suf_a} vs {suf_b})"
+
         # 1. Brand Weighted Score (30%)
         if ent_a['brand'] and ent_b['brand']:
             if ent_a['brand'].lower() == ent_b['brand'].lower():
@@ -50,9 +96,9 @@ class ProductMatcher:
 
         if model_a and model_b:
             m_ratio = fuzz.token_set_ratio(model_a, model_b)
-            if m_ratio >= 80:
+            if m_ratio >= 85:
                 score += 30
-            elif m_ratio >= 60:
+            elif m_ratio >= 65:
                 score += 20
             else:
                 score += (m_ratio * 0.3)

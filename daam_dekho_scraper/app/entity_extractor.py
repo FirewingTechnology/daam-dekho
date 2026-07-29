@@ -18,11 +18,13 @@ MARKETING_WORDS = [
     r'\bmobile\b', r'\bphone\b', r'\bflagship\b', r'\bultra\b\s+(?=camera|battery|display)',
     r'\bdual\s+sim\b', r'\bnew\s+launch\b', r'\b2025\s+edition\b', r'\b2024\s+edition\b',
     r'\bofficial\b', r'\boriginal\b', r'\bdeal\b', r'\bbest\s+seller\b', r'\blatest\b',
-    r'\bwith\s+warranty\b', r'\boffers\b', r'\bspecial\s+edition\b', r'\blimited\s+edition\b',
+    r'\bwith\s+warranty\b', r'\boffers?\b', r'\bspecial\s+edition\b', r'\blimited\s+edition\b',
     r'\bwith\s+other\s+offers\b', r'\bbuilt-in\s+privacy\s+display\b', r'\bphoto\s+assist\b',
     r'\bcreative\s+studio\b', r'\blong\s+battery\s+life\b', r'\bs\s+pen\s+included\b',
     r'\bsuper\s+amoled\b', r'\bamoled\b', r'\b50mp\b', r'\b108mp\b', r'\b200mp\b', r'\b7200mah\b',
-    r'\b5000mah\b', r'\b6000mah\b', r'\bdimensity\s+\d{4}\b', r'\bsnapdragon\s+\d(?:\s*gen\s*\d)?\b'
+    r'\b5000mah\b', r'\b6000mah\b', r'\b7540mah\b', r'\b8000mah\b', r'\b9000mah\b', r'\bdimensity\s+\d{4}\b',
+    r'\bsnapdragon\s+\d(?:\s*gen\s*\d)?\b', r'\bwith\s+(?:no\s+cost\s+emi|bank\s+offers?|exchange\s+offers?|discount|offers?)\b',
+    r'\bno\s+cost\s+emi\b', r'\bbank\s+offers?\b', r'\bexchange\s+offers?\b', r'\bworld\'?s\s+first\b'
 ]
 
 class EntityExtractor:
@@ -158,30 +160,39 @@ class EntityExtractor:
         t_lower = t.lower()
 
         # iPhone Series
-        iphone = re.search(r'\biphone\s+(16\s*pro\s*max|16\s*pro|16\s*plus|16|15\s*pro\s*max|15\s*pro|15\s*plus|15|14\s*plus|14\s*pro\s*max|14\s*pro|14|13\s*mini|13|12|11|se)\b', t_lower)
+        iphone = re.search(r'\b(?:apple\s+)?iphone\s+(16\s*pro\s*max|16\s*pro|16\s*plus|16|15\s*pro\s*max|15\s*pro|15\s*plus|15|14\s*plus|14\s*pro\s*max|14\s*pro|14|13\s*mini|13|12|11|se)\b', t_lower)
         if iphone:
             return "iPhone", f"iPhone {iphone.group(1).title()}"
 
         # Samsung Series
-        samsung = re.search(r'\bgalaxy\s+(s\d{2}\s*ultra|s\d{2}\s*plus|s\d{2}\s*fe|s\d{2}|a\d{2}\s*5g|a\d{2}|m\d{2}|f\d{2}|z\s*fold\s*\d|z\s*flip\s*\d)\b', t_lower)
+        samsung = re.search(r'\b(?:samsung\s+)?(?:galaxy\s+)?(s\d{2}\s*ultra|s\d{2}\s*plus|s\d{2}\s*fe|s\d{2}|a\d{2}\s*5g|a\d{2}|m\d{2}|f\d{2}|z\s*fold\s*\d|z\s*flip\s*\d)\b', t_lower)
         if samsung:
             return "Galaxy", f"Galaxy {samsung.group(1).upper()}"
 
-        # Vivo Series (T5x 5G, V30, Y200, X100, etc.)
-        vivo = re.search(r'\bvivo\s+([a-z0-9]+\s*(?:pro\s*\+|pro|5g|x|t)?)\b', t_lower)
-        if vivo:
-            return "Vivo", f"Vivo {vivo.group(1).title()}"
+        # OnePlus Series (15R, 13R, 12R, Nord 4, Nord CE4, etc.)
+        oneplus = re.search(r'\b(?:oneplus\s+)?(15r|13r|12r|11r|10r|15|13|12|11|nord\s*ce\s*\d|nord\s*\d)\b', t_lower)
+        if oneplus:
+            m_str = oneplus.group(1).upper()
+            if m_str.startswith('NORD'): m_str = m_str.title()
+            return m_str, m_str
 
+        # Vivo Series (T5x, T3x, T2x, V30 Pro, V30, Y200, X100, etc.)
+        vivo = re.search(r'\b(?:vivo\s+)?(t5x|t3x|t2x|v30\s*pro|v30|v29|y200|y100|x100\s*pro|x100)\b', t_lower)
+        if vivo:
+            m_str = vivo.group(1).upper()
+            return m_str, m_str
+
+        # Oppo Series (F31, F27, Reno 12 Pro, Reno 12, etc.)
+        oppo = re.search(r'\b(?:oppo\s+)?(f31|f27|f25|reno\s*12\s*pro|reno\s*12|a79|a59)\b', t_lower)
+        if oppo:
+            m_str = oppo.group(1).upper()
+            return m_str, m_str
 
         # Realme Series
-        realme = re.search(r'\brealme\s+([a-z0-9]+\s*(?:pro\s*\+|pro|5g|t)?)\b', t_lower)
+        realme = re.search(r'\b(?:realme\s+)?(gt\s*6t|gt\s*6|12\s*pro\s*\+|12\s*pro|12x|p1|narzo\s*\d+)\b', t_lower)
         if realme:
-            return "Realme", f"Realme {realme.group(1).title()}"
-
-        # OnePlus Series
-        oneplus = re.search(r'\boneplus\s+([a-z0-9\s]+(?:pro|r|nord\s*ce\s*\d|nord\s*\d)?)\b', t_lower)
-        if oneplus:
-            return "OnePlus", f"OnePlus {oneplus.group(1).title()}"
+            m_str = realme.group(1).upper()
+            return m_str, m_str
 
         # Laptop Series
         macbook = re.search(r'\bmacbook\s+(air|pro)\s*(m[1234])?\b', t_lower)
@@ -202,10 +213,12 @@ class EntityExtractor:
             return "Legion", f"Legion {legion.group(1).title()}"
 
         # Generic Model extraction
-        tokens = [w for w in t.split() if len(w) > 1 and not any(re.search(p, w.lower()) for p in MARKETING_WORDS)]
-        series = tokens[1] if len(tokens) > 1 else tokens[0] if tokens else "Series"
-        model = " ".join(tokens[:3]) if tokens else "Model"
+        cleaned = self.clean_marketing_words(title)
+        tokens = [w for w in cleaned.split() if len(w) > 1 and not re.search(r'\b\d+gb\b|\b\d+tb\b|\b5g\b|\b4g\b', w, re.I)]
+        series = tokens[1] if len(tokens) > 1 else (tokens[0] if tokens else "Series")
+        model = " ".join(tokens[:2]) if tokens else "Model"
         return series, model
+
 
 
     def extract_all(self, title, specs=None, category="Mobiles", brand=None):
