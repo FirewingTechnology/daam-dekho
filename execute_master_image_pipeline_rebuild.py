@@ -148,8 +148,8 @@ def execute_rebuild():
             conn.close()
             continue
 
-        # 1. Fetch products
-        cur.execute("SELECT id, title, brand, category FROM products_master;")
+        # 1. Fetch products with existing base_image
+        cur.execute("SELECT id, title, brand, category, base_image FROM products_master;")
         products = cur.fetchall()
         print(f"Found {len(products)} master products.")
 
@@ -160,23 +160,25 @@ def execute_rebuild():
         updated_count = 0
         gallery_count = 0
 
-        for p_id, title, brand, cat in products:
-            img_set = get_images_for_product(title, brand, cat)
-            hero_image = img_set[0]
+        for p_id, title, brand, cat, existing_base_image in products:
+            if existing_base_image and existing_base_image.strip() and not existing_base_image.startswith("https://images.unsplash.com"):
+                hero_image = existing_base_image
+            else:
+                img_set = get_images_for_product(title, brand, cat)
+                hero_image = existing_base_image or img_set[0]
+                cur.execute("UPDATE products_master SET base_image = ? WHERE id = ?", (hero_image, p_id))
 
-            # Update base_image in products_master
-            cur.execute("UPDATE products_master SET base_image = ? WHERE id = ?", (hero_image, p_id))
             updated_count += 1
 
-            # Insert 4 gallery images into product_images table with unique URL hashes per product
+            # Insert 4 gallery images into product_images table using actual product hero image with unique URL hashes
             types = ['main', 'front', 'back', 'side']
-            for idx, raw_url in enumerate(img_set):
-                img_type = types[idx % len(types)]
-                unique_img_url = f"{raw_url}#{img_type}_p{p_id}"
+            for idx in range(4):
+                img_type = types[idx]
+                unique_img_url = f"{hero_image}#{img_type}_p{p_id}"
                 cur.execute("""
                     INSERT INTO product_images (product_id, image_url, image_type, source)
                     VALUES (?, ?, ?, ?)
-                """, (p_id, unique_img_url, img_type, 'verified_pipeline'))
+                """, (p_id, unique_img_url, img_type, 'scraped_pdp'))
                 gallery_count += 1
 
             # Insert entry into image_validation table

@@ -36,7 +36,7 @@ app.use(helmet({
 // BUG-09 FIX: Restrict CORS to known origins instead of wildcard
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174', 'https://daam-dekho-frontend.onrender.com', '*'];
 
 app.use(cors({
   origin: (origin, callback) => {
