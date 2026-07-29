@@ -84,6 +84,7 @@ const ProductCompareShowCard = ({ product, onSelect }) => {
           <img
             src={thumbnail}
             alt={title}
+            referrerPolicy="no-referrer"
             className="max-w-full max-h-full object-contain rounded"
           />
         ) : (

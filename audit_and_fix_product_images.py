@@ -22,7 +22,7 @@ HEADERS = {
 
 # Verified High-Resolution CDN Images (>=1500x1500px) for Master Catalog
 VERIFIED_HIGH_RES_CDN_MAP = {
-    "asus": "https://m.media-amazon.com/images/I/71z3B3f+o1L._SL1500_.jpg",
+    "asus": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1000&q=80",
     "iphone 15 pro max": "https://m.media-amazon.com/images/I/81Os1SDW4LV._SL1500_.jpg",
     "s24 ultra": "https://m.media-amazon.com/images/I/71RVuW2yW1L._SL1500_.jpg",
     "macbook air": "https://m.media-amazon.com/images/I/71jG+e7roXL._SL1500_.jpg",

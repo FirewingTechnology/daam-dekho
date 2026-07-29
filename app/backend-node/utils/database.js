@@ -332,6 +332,13 @@ export async function getProductById(productId) {
             }
           };
 
+        // 4. Fetch product images gallery
+        const imageQuery = `SELECT image_url FROM product_images WHERE product_id = ?`;
+        db.all(imageQuery, [productId], (err, imageRows) => {
+          const galleryImages = (imageRows || []).map(ir => ir.image_url);
+          const baseImg = masterRow.base_image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+          const allImages = galleryImages.length > 0 ? galleryImages : [baseImg];
+
           const expectedVendors = ['Amazon', 'Flipkart', 'Croma', 'JioMart', 'Vijay Sales'];
           const foundVendors = vendorList.map(v => v.platform);
           const missingVendors = expectedVendors.filter(ev => !foundVendors.includes(ev));
@@ -346,13 +353,12 @@ export async function getProductById(productId) {
             reviews: vendorList.reduce((acc, v) => acc + (v.reviews || 0), 0) || 150,
             price: vendorList.length ? vendorList[0].price : 0,
             discounted_price: vendorList.length ? vendorList[0].price : 0,
-            mainImage: masterRow.base_image || (vendorList[0] ? vendorList[0].image : 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80'),
-            image: masterRow.base_image || (vendorList[0] ? vendorList[0].image : 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80'),
-            images: [
-              masterRow.base_image || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80',
-              'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80',
-              'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&q=80'
-            ],
+            base_image: baseImg,
+            mainImage: baseImg,
+            image: baseImg,
+            image_url: baseImg,
+            images: allImages,
+            image_urls: allImages,
             specifications: rawSpecs,
             structured_specifications: structuredSpecs,
             offers: vendorList.length ? vendorList[0].offers : [],
@@ -377,6 +383,7 @@ export async function getProductById(productId) {
           };
 
           resolve(productData);
+        });
         });
       });
     });

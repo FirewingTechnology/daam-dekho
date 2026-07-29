@@ -84,7 +84,7 @@ class DatabaseManager:
             
             cursor.execute("PRAGMA table_info(product_variants)")
             pv_cols = [row[1] for row in cursor.fetchall()]
-            for col_name in ['variant_identity', 'hardware_identity', 'color', 'edition']:
+            for col_name in ['canonical_hash', 'variant_identity', 'hardware_identity', 'color', 'edition']:
                 if col_name not in pv_cols:
                     try: cursor.execute(f"ALTER TABLE product_variants ADD COLUMN {col_name} TEXT")
                     except Exception: pass

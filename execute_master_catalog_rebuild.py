@@ -30,7 +30,7 @@ MASTER_CATALOG_DATASET = [
             "brand": "Asus",
             "category": "Laptops",
             "subcategory": "Gaming Laptops",
-            "base_image": "https://m.media-amazon.com/images/I/71z3B3f+o1L._SL1500_.jpg"
+            "base_image": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1000&q=80"
         },
         "variant": {
             "color": "Eclipse Gray",

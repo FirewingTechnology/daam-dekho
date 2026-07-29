@@ -83,6 +83,7 @@ const ProductSearchCard = ({ product }) => {
         <img
           src={thumbnail}
           alt={title}
+          referrerPolicy="no-referrer"
           className="w-12 h-12 object-contain rounded"
         />
       )}
