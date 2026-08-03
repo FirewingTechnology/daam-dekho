@@ -14,6 +14,7 @@ router.get('/search/suggestions', productController.getSearchSuggestions);
 router.get('/categories', productController.getCategories);
 router.get('/brands', productController.getBrands);
 router.get('/filter-options', productController.getFilterOptions);
+router.get('/filter_options', productController.getFilterOptions);
 router.get('/sitemap.xml', productController.getSitemap);
 router.get('/robots.txt', productController.getRobots);
 // Auth Routes

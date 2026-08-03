@@ -43,6 +43,7 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true);
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
     return callback(new Error(`CORS: Origin ${origin} not allowed`));
   },
   credentials: true

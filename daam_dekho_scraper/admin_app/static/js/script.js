@@ -206,18 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span style="font-size: 0.8rem; color: var(--text-muted);">${p.brand || 'No Brand'}</span>
                     </td>
                     <td>
-                        <strong>₹${p.min_price.toLocaleString()}</strong>
-                        ${p.max_price > p.min_price ? `<br><span style="font-size: 0.78rem; color: var(--text-dim);">Max: ₹${p.max_price.toLocaleString()}</span>` : ''}
+                        <strong>₹${(p.min_price || 0).toLocaleString()}</strong>
+                        ${(p.max_price || 0) > (p.min_price || 0) ? `<br><span style="font-size: 0.78rem; color: var(--text-dim);">Max: ₹${(p.max_price || 0).toLocaleString()}</span>` : ''}
                     </td>
                     <td>
-                        <span class="badge badge-warning">${p.vendor_count} Vendors</span>
+                        <span class="badge badge-warning">${p.vendor_count || 0} Vendors</span>
                     </td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.4rem;">
                             <div class="progress-bar" style="width: 60px; height: 6px;">
-                                <div class="progress-fill" style="width: ${p.quality_score}%"></div>
+                                <div class="progress-fill" style="width: ${p.quality_score || 0}%"></div>
                             </div>
-                            <strong style="font-size: 0.8rem;">${p.quality_score}%</strong>
+                            <strong style="font-size: 0.8rem;">${p.quality_score || 0}%</strong>
                         </div>
                     </td>
                     <td>
@@ -232,7 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
             attachTableEvents();
             populateFilterOptions();
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--danger);">Failed to load products.</td></tr>`;
+            console.error("Failed to fetch products:", err);
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--danger);">Failed to load products: ${err.message || err}</td></tr>`;
         }
     }
 
@@ -874,9 +875,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateDiscoveryModeUI();
 
-    // Start Real-Time Polling every 1.5 seconds
-    setInterval(pollScraperStatus, 1500);
-    pollScraperStatus();
+    // Start Real-Time Polling (managed by safe polling engine)
+
 
 
 
@@ -1288,12 +1288,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-run-ai-validation')?.addEventListener('click', runAIValidation);
     document.getElementById('btn-run-background-repair')?.addEventListener('click', runBackgroundRepair);
 
-    // --- POLLING ENGINE ---
-    pollScraperStatus();
-    fetchLogs();
-    setInterval(pollScraperStatus, 1000);
-    setInterval(loadDashboard, 10000);
-    setInterval(fetchLogs, 1500);
+    // --- POLLING ENGINE (GUARDED TO PREVENT ERR_INSUFFICIENT_RESOURCES) ---
+    let isPollingStatus = false;
+    let isPollingLogs = false;
+
+    async function safePollScraperStatus() {
+        if (isPollingStatus) return;
+        isPollingStatus = true;
+        try {
+            await pollScraperStatus();
+        } catch (e) {
+            console.warn("Poll status error:", e);
+        } finally {
+            isPollingStatus = false;
+        }
+    }
+
+    async function safeFetchLogs() {
+        if (isPollingLogs) return;
+        isPollingLogs = true;
+        try {
+            if (typeof fetchLogs === 'function') await fetchLogs();
+        } catch (e) {
+            console.warn("Fetch logs error:", e);
+        } finally {
+            isPollingLogs = false;
+        }
+    }
+
+    safePollScraperStatus();
+    safeFetchLogs();
+
+    setInterval(safePollScraperStatus, 3000);
+    setInterval(safeFetchLogs, 3000);
+    setInterval(loadDashboard, 15000);
 });
 
 async function runIdentityDebug() {

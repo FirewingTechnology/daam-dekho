@@ -90,6 +90,9 @@
                 <a href="#enterprise-sync" class="nav-link" data-tab="enterprise-sync">
                     <i class="fas fa-rotate text-purple"></i> <span>Sync Center</span>
                 </a>
+                <a href="#v10-etl-platform" class="nav-link" data-tab="v10-etl-platform">
+                    <i class="fas fa-cubes text-warning"></i> <span>v10.0 Enterprise ETL</span>
+                </a>
 
 
 
@@ -830,6 +833,65 @@
                             <h4 style="color: #a855f7; margin-bottom: 0.5rem;"><i class="fas fa-star"></i> AI Product Scorecard</h4>
                             <div id="ai-scorecard-box" style="font-size: 0.85rem; color: #e5e7eb;">Loading scorecard...</div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: v10.0 ENTERPRISE ETL PLATFORM -->
+            <section id="view-v10-etl-platform" class="tab-view">
+                <div class="glass-card">
+                    <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3><i class="fas fa-cubes text-warning"></i> DaamDekho v10.0 Enterprise Product Intelligence ETL Platform</h3>
+                        <button class="btn-primary" id="btn-trigger-v10-etl"><i class="fas fa-play"></i> Run v10.0 ETL Pipeline</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-top: 1rem;">
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">RAW COLLECTED</div>
+                            <div id="v10-telemetry-raw" style="font-size: 1.2rem; font-weight: 700; color: #38bdf8;">--</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">NORMALIZED</div>
+                            <div id="v10-telemetry-norm" style="font-size: 1.2rem; font-weight: 700; color: #fbbf24;">--</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">MASTER PRODUCTS</div>
+                            <div id="v10-telemetry-master" style="font-size: 1.2rem; font-weight: 700; color: #a855f7;">--</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">VARIANTS BUILT</div>
+                            <div id="v10-telemetry-variants" style="font-size: 1.2rem; font-weight: 700; color: #34d399;">--</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">OFFERS ATTACHED</div>
+                            <div id="v10-telemetry-offers" style="font-size: 1.2rem; font-weight: 700; color: #f472b6;">--</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #9ca3af;">COVERAGE %</div>
+                            <div id="v10-telemetry-coverage" style="font-size: 1.2rem; font-weight: 700; color: #10b981;">--%</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color: #f59e0b; margin-bottom: 0.75rem;"><i class="fas fa-route"></i> 10-Phase Pipeline Architecture Status</h4>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;" id="v10-phases-container">
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">1. Admin Request</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">2. Crawl Session</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">3. Multi-Vendor Scrapers</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">4. Raw Data Lake</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">5. PDP Extraction</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">6. Attribute Normalization</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">7. Canonical Title Gen</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">8. Master & Variant Builder</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">9. Offer Attachment</div>
+                            <div style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #10b981;">10. Website Publisher</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 0.5rem;"><i class="fas fa-timeline"></i> Product Lineage Explorer</h4>
+                        <div style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 0.5rem;">Raw Product → Normalized Entity → Master Product → Variant → Vendor Offer → Published Catalog</div>
+                        <pre id="v10-lineage-output" style="font-family: monospace; font-size: 0.8rem; background: #0f172a; padding: 0.75rem; border-radius: 6px; overflow-x: auto; color: #38bdf8;">Select a product or run pipeline to inspect full lineage.</pre>
                     </div>
                 </div>
             </section>

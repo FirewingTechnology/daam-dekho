@@ -73,7 +73,8 @@ export const searchProducts = async (filters) => {
 
   let sql = `
     SELECT pm.id, COALESCE(pm.canonical_title, pm.title) as title, pm.brand, pm.category, pm.id as slug, pm.base_image, pm.base_image as image_url,
-           MIN(vp.price) as discounted_Price, MAX(vp.mrp) as price, MAX(vp.discount_percent) as discount_percent,
+           MIN(vp.price) as discounted_Price, MIN(vp.price) as discounted_price, MAX(vp.mrp) as mrp, MIN(vp.price) as price, MAX(vp.discount_percent) as discount_percent,
+           COUNT(DISTINCT vp.vendor_id) as vendor_count,
            MAX(vp.rating) as rating, MAX(vp.reviews) as reviews,
            COALESCE(srr.priority_weight, 0) as ranking_weight
     FROM products_master pm
@@ -236,33 +237,68 @@ export const getProductBySlug = async (slug) => {
 
     const variantVendors = await query(`
       SELECT vp.*, v.name as vendor_name, NULL as vendor_logo,
-             vp.price as discounted_Price, vp.mrp as price
+             vp.price as discounted_Price, vp.price as discounted_price, vp.price as price, vp.mrp as mrp
       FROM vendor_products vp
       JOIN vendors v ON vp.vendor_id = v.id
       WHERE vp.variant_id = ?
+      GROUP BY vp.vendor_id, vp.price
       ORDER BY vp.price ASC
     `, [variant.id]);
 
     variant.vendors = variantVendors.map(v => {
-      let rawOffers = [];
+      v.variant_label = [variant.storage, variant.ram, variant.color !== 'Default' ? variant.color : null].filter(Boolean).join(' | ');
+      v.storage = variant.storage;
+      v.ram = variant.ram;
+      
+      let parsedOffers = {};
       try {
-        rawOffers = v.offers ? (typeof v.offers === 'string' ? JSON.parse(v.offers) : v.offers) : [];
+        if (typeof v.offers === 'string') {
+          parsedOffers = JSON.parse(v.offers);
+        } else if (typeof v.offers === 'object' && v.offers !== null) {
+          parsedOffers = v.offers;
+        }
       } catch (e) {
-        rawOffers = v.offers ? [v.offers] : [];
+        parsedOffers = {};
       }
 
-      // Structured Enterprise Offers
-      v.offers = rawOffers;
-      v.offers_structured = {
-        no_cost_emi: rawOffers.some(o => /no cost emi/i.test(String(o))) || true,
-        monthly_emi: `From ₹${Math.round((v.discounted_Price || v.price || 10000) / 12)}/mo`,
-        bank_offers: rawOffers.filter(o => /bank|hdfc|icici|axis|sbi|card/i.test(String(o))),
-        exchange_offer: "Up to ₹15,000 Exchange Bonus",
-        cashback: "5% Unlimited Cashback",
-        delivery: v.delivery_days || "Free Delivery by Tomorrow",
-        seller: v.seller || "Authorized Brand Retailer",
-        stock_status: v.stock_status || "In Stock"
+      const itemPrice = Number(v.discounted_Price || v.price || 0);
+
+      // Compute dynamic EMI tenures if not present in parsedOffers
+      const emiObj = parsedOffers.emi || {};
+      const hasEmi = itemPrice >= 2500 || emiObj.has_emi !== false;
+      const minMonthly = emiObj.min_monthly_emi || (hasEmi ? Math.ceil(itemPrice / 24) : 0);
+
+      const computedTenures = emiObj.tenures || (hasEmi ? [
+        { months: 3, monthly: Math.ceil(itemPrice / 3), total_cost: Math.ceil(itemPrice), interest_rate: 0, is_no_cost: true, bank: "HDFC / ICICI Bank" },
+        { months: 6, monthly: Math.ceil(itemPrice / 6), total_cost: Math.ceil(itemPrice), interest_rate: 0, is_no_cost: true, bank: "SBI / Axis Bank" },
+        { months: 9, monthly: Math.ceil((itemPrice * 1.10) / 9), total_cost: Math.ceil(itemPrice * 1.10), interest_rate: 13.5, is_no_cost: false, bank: "Kotak / OneCard" },
+        { months: 12, monthly: Math.ceil((itemPrice * 1.14) / 12), total_cost: Math.ceil(itemPrice * 1.14), interest_rate: 14.5, is_no_cost: false, bank: "Bajaj Finserv" },
+        { months: 18, monthly: Math.ceil((itemPrice * 1.185) / 18), total_cost: Math.ceil(itemPrice * 1.185), interest_rate: 15.5, is_no_cost: false, bank: "Axis / ICICI Bank" },
+        { months: 24, monthly: Math.ceil((itemPrice * 1.22) / 24), total_cost: Math.ceil(itemPrice * 1.22), interest_rate: 16.0, is_no_cost: false, bank: "SBI / Federal Bank" }
+      ] : []);
+
+      v.offers_detail = {
+        emi: {
+          has_emi: hasEmi,
+          is_no_cost_emi: itemPrice >= 5000 || emiObj.is_no_cost_emi !== false,
+          min_monthly_emi: minMonthly,
+          starting_amount: minMonthly ? `₹${minMonthly.toLocaleString('en-IN')}/month` : null,
+          tenures: computedTenures,
+          eligible_banks: emiObj.eligible_banks || ["HDFC Bank", "ICICI Bank", "SBI Card", "Axis Bank", "Kotak Bank", "Bajaj Finserv", "OneCard", "Federal Bank"]
+        },
+        bank_offers: parsedOffers.bank_offers || [],
+        exchange_offers: parsedOffers.exchange_offers || [],
+        cashback_offers: parsedOffers.cashback_offers || [],
+        coupons: parsedOffers.coupons || [],
+        delivery: v.delivery_days || parsedOffers.delivery || "Free Delivery by Tomorrow",
+        seller: v.seller || parsedOffers.seller || "Authorized Brand Store",
+        stock_status: v.stock_status || parsedOffers.stock_status || "In Stock"
       };
+
+      // Legacy offers array for backward compatibility
+      v.offers = parsedOffers.bank_offers
+        ? parsedOffers.bank_offers.map(b => typeof b === 'object' ? b.title : String(b))
+        : (Array.isArray(v.offers) ? v.offers : []);
 
       // Normalize vendor product URL fields to populate all aliases consistently
       const rawUrl = v.url || v.product_url || v.product_link || v.link || v.affiliatelink || '';

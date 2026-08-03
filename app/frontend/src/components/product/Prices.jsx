@@ -165,42 +165,80 @@ const Prices = ({ product }) => {
       return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
     };
 
-    // Laptops / products with direct price fields and no vendor map
-    if ((product?.price || product?.discounted_Price) && !product?.vendors) {
-      const storeName = product.vendor_name || product.seller_name || 'Best Price';
-      return {
-        vendors: [{
-          name: storeName,
-          originalPrice: parsePriceValue(product.price),
-          discountPrice: parsePriceValue(product.discounted_Price) || parsePriceValue(product.price),
-          rating: parseFloat(product.rating) || 0,
-          offers: product.offers ? [
-            product.offers.discount,
-            product.offers.bank_offer_1,
-            product.offers.bank_offer_2,
-            product.offers.bank_offer_3
-          ].filter(offer => offer && offer !== 'N/A') : [],
-          link: resolveLink(product)
-        }]
-      };
+    // 1. Array of vendor listings / offers (from v10 ETL API, vendor_listings, or variants)
+    const rawVendorList = Array.isArray(product?.vendors) 
+      ? product.vendors 
+      : Array.isArray(product?.vendor_listings)
+      ? product.vendor_listings
+      : Array.isArray(product?.vendorOffers)
+      ? product.vendorOffers
+      : (product?.variants && Array.isArray(product.variants))
+      ? product.variants.flatMap(v => v.vendors || v.vendorOffers || [])
+      : null;
+
+    if (rawVendorList && rawVendorList.length > 0) {
+      const vendorsArray = rawVendorList
+        .filter(data => data && (data.price || data.discounted_price || data.discounted_Price || data.mrp))
+        .map(data => {
+          const rawName = data.vendor_name || data.vendor || data.name || data.seller || 'Online Store';
+          const discountPrice = getDiscountedPrice(data);
+          const rawMrp = parsePriceValue(data.mrp);
+          const originalPrice = rawMrp > discountPrice ? rawMrp : discountPrice;
+          const variantLabel = data.variant_label || data.storage || data.ram || '';
+          return {
+            name: String(rawName).charAt(0).toUpperCase() + String(rawName).slice(1),
+            variantLabel: variantLabel,
+            originalPrice: originalPrice,
+            discountPrice: discountPrice > 0 ? discountPrice : originalPrice,
+            rating: parseFloat(data.rating) || 4.5,
+            offers: cleanOffersArray(data.offers),
+            link: resolveLink(data)
+          };
+        });
+      if (vendorsArray.length > 0) {
+        // Deduplicate cards with identical vendor name and price
+        const uniqueMap = new Map();
+        vendorsArray.forEach(v => {
+          const key = `${v.name.toLowerCase()}_${v.discountPrice}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, v);
+          }
+        });
+        return { vendors: Array.from(uniqueMap.values()) };
+      }
     }
-    
-    // Mobiles: vendors object
-    if (product?.vendors && typeof product.vendors === 'object') {
+
+    // 2. Object map: { amazon: {...}, flipkart: {...} }
+    if (product?.vendors && typeof product.vendors === 'object' && !Array.isArray(product.vendors)) {
       const vendorsArray = Object.entries(product.vendors)
-        .filter(([, data]) => data && (data.price || data.discounted_price || data.discountprice))
+        .filter(([, data]) => data && (data.price || data.discounted_price || data.discountprice || data.discounted_Price))
         .map(([name, data]) => {
           const discountPrice = getDiscountedPrice(data);
           return {
             name: name.charAt(0).toUpperCase() + name.slice(1),
             originalPrice: parsePriceValue(data.price),
             discountPrice: discountPrice > 0 ? discountPrice : parsePriceValue(data.price),
-            rating: data.rating || 0,
+            rating: parseFloat(data.rating) || 4.5,
             offers: cleanOffersArray(data.offers),
             link: resolveLink(data)
           };
         });
       return { vendors: vendorsArray };
+    }
+
+    // 3. Single store product fallback
+    if (product?.price || product?.discounted_Price) {
+      const storeName = product.vendor_name || product.seller_name || 'Best Price';
+      return {
+        vendors: [{
+          name: storeName,
+          originalPrice: parsePriceValue(product.price),
+          discountPrice: parsePriceValue(product.discounted_Price) || parsePriceValue(product.price),
+          rating: parseFloat(product.rating) || 4.5,
+          offers: cleanOffersArray(product.offers),
+          link: resolveLink(product)
+        }]
+      };
     }
     
     return { vendors: [] };
@@ -243,20 +281,31 @@ const Prices = ({ product }) => {
                 )}
                 
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center p-2 border border-gray-100 flex-shrink-0">
+                  <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center p-1.5 border border-gray-100 flex-shrink-0 relative overflow-hidden">
                     <img 
                       src={vendorLogo} 
                       alt={vendor.name} 
                       className="max-w-full max-h-full object-contain"
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => { 
+                        e.target.style.display = 'none'; 
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
+                    <div style={{ display: 'none' }} className="w-full h-full items-center justify-center font-extrabold text-xs text-blue-600 bg-blue-50 rounded uppercase">
+                      {vendor.name.substring(0, 2)}
+                    </div>
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 leading-tight">{vendor.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-[10px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded flex items-center gap-1">
                         <span className="w-1 h-1 bg-green-600 rounded-full"></span> In Stock
                       </span>
+                      {vendor.variantLabel && (
+                        <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                          {vendor.variantLabel}
+                        </span>
+                      )}
                       <span className="text-[10px] font-medium text-gray-400">Free Delivery</span>
                     </div>
                   </div>

@@ -23,9 +23,11 @@ class DatabaseManager:
         return conn
 
     def init_db(self):
-        """Initializes the production-grade schema with strict v2.1 constraints."""
+        """Initializes the production-grade schema with strict v10.0 4-layer constraints."""
         try:
             conn = self.get_connection()
+            from app.database.v10_data_lake_schema import init_v10_data_lake_schema
+            init_v10_data_lake_schema(conn=conn)
             cursor = conn.cursor()
 
             # 1. Vendors Table

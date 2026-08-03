@@ -118,14 +118,25 @@ def save_settings_data(data):
         json.dump(data, f, indent=2)
 
 def get_db():
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(DB_PATH), timeout=30.0)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+    except Exception:
+        pass
     return conn
 
 # ----------------------------------------------------
 # DATABASE STATS & METRICS CALCULATOR
 # ----------------------------------------------------
+_metrics_cache = {"data": None, "ts": 0}
+
 def calculate_dashboard_metrics():
+    now = time.time()
+    if _metrics_cache["data"] and (now - _metrics_cache["ts"] < 3):
+        return _metrics_cache["data"]
+
     metrics = {
         "total_products": 0,
         "total_vendor_listings": 0,
@@ -243,6 +254,8 @@ def calculate_dashboard_metrics():
     except Exception as e:
         logger.error(f"Error in calculate_dashboard_metrics: {e}")
 
+    _metrics_cache["data"] = metrics
+    _metrics_cache["ts"] = time.time()
     return metrics
 
 
@@ -1642,6 +1655,58 @@ def debug_identity():
         "rejection_rationale": reject_reason
     })
 
+# --- v10.0 ENTERPRISE ETL PLATFORM APIS ---
+
+@app.route('/api/v10/etl-pipeline', methods=['GET', 'POST'])
+def v10_etl_pipeline_api():
+    if request.method == 'POST':
+        data = request.json or {}
+        query = data.get('query', 'Samsung Galaxy A35 5G')
+        category = data.get('category', 'Mobiles')
+        brand = data.get('brand', 'Samsung')
+        vendors = data.get('vendors', ['amazon', 'flipkart', 'croma', 'jiomart', 'vijaysales'])
+        max_pages = data.get('max_pages', 2)
+
+        from app.pipeline import ScraperPipeline
+        pipeline_inst = ScraperPipeline(vendors_to_use=vendors)
+        res = pipeline_inst.run_search(query=query, category=category, brand=brand, vendors=vendors, max_pages=max_pages)
+        return jsonify({"status": "success", "data": res})
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM raw_products")
+    raw_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM normalized_products")
+    norm_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM master_products")
+    master_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM product_variants")
+    variant_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM vendor_offers")
+    offer_count = c.fetchone()[0]
+    conn.close()
+
+    return jsonify({
+        "status": "success",
+        "telemetry": {
+            "raw_products_collected": raw_count,
+            "normalized_entities": norm_count,
+            "master_products_created": master_count,
+            "variants_created": variant_count,
+            "vendor_offers_attached": offer_count,
+            "coverage_percentage": round((offer_count / max(1, master_count * 5)) * 100, 2)
+        }
+    })
+
+@app.route('/api/v10/product-lineage')
+def v10_product_lineage_api():
+    raw_id = request.args.get('raw_id', type=int)
+    master_id = request.args.get('master_id', type=int)
+
+    from app.etl.v10_product_lineage import product_lineage_engine
+    lineage = product_lineage_engine.get_product_lineage(raw_product_id=raw_id, master_product_id=master_id)
+    return jsonify({"status": "success", "lineage": lineage})
+
 # --- v2.4 PRODUCT KNOWLEDGE GRAPH APIS ---
 
 @app.route('/api/product-graph')
@@ -2381,5 +2446,5 @@ def api_vendor_sync():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
 

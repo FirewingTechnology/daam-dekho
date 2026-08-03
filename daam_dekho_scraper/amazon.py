@@ -260,9 +260,42 @@ class AmazonMobileScraper:
                     title_elem = psoup.find("span", id="productTitle")
                     product_name = title_elem.get_text(strip=True) if title_elem else "N/A"
                     
-                    actual_price_tag = psoup.find("span", class_="a-price a-text-price")
-                    raw_price = actual_price_tag.find("span", class_="a-offscreen").text.strip() if actual_price_tag else "0"
-                    actual_price = clean_price(raw_price)
+                    # 1. Selling Price (Deal / Current Price)
+                    selling_price = 0.0
+                    price_elem = (
+                        psoup.select_one(".apexPriceToPay .a-offscreen") or
+                        psoup.select_one("#corePrice_desktop .a-price:not(.a-text-price) .a-offscreen") or
+                        psoup.select_one(".a-price:not(.a-text-price) .a-offscreen") or
+                        psoup.select_one("#priceblock_ourprice") or
+                        psoup.select_one("#priceblock_dealprice") or
+                        psoup.select_one(".a-price-whole")
+                    )
+                    if price_elem:
+                        selling_price = clean_price(price_elem.get_text(strip=True))
+
+                    # 2. List MRP
+                    mrp_price = 0.0
+                    mrp_elem = (
+                        psoup.select_one("span.a-text-price .a-offscreen") or
+                        psoup.select_one("span[data-a-strike='true'] .a-offscreen") or
+                        psoup.select_one("#priceblock_saleprice")
+                    )
+                    if mrp_elem:
+                        mrp_price = clean_price(mrp_elem.get_text(strip=True))
+                    if mrp_price <= 0:
+                        mrp_price = selling_price
+
+                    # 3. Discount Percentage
+                    discount_pct = 0.0
+                    savings_elem = psoup.select_one(".savingsPercentage")
+                    if savings_elem:
+                        m_disc = re.search(r"(\d+)", savings_elem.get_text(strip=True))
+                        if m_disc:
+                            discount_pct = float(m_disc.group(1))
+                    elif mrp_price > selling_price > 0:
+                        discount_pct = round(((mrp_price - selling_price) / mrp_price) * 100, 1)
+
+                    actual_price = selling_price if selling_price > 0 else mrp_price
 
                     
                     # Extract actual product brand from title

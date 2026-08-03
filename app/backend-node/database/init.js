@@ -124,6 +124,32 @@ export const initSchema = () => {
         FOREIGN KEY (user_id) REFERENCES users(id)
       )`);
 
+      // 11. search_ranking_rules
+      db.run(`CREATE TABLE IF NOT EXISTS search_ranking_rules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_pattern TEXT UNIQUE,
+        priority_weight REAL DEFAULT 1.0,
+        boost_brands TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (!err) {
+          // Seed default ranking rules for each category
+          const seeds = [
+            ['Mobiles', 1.5, 'Samsung,Apple,OnePlus'],
+            ['Laptops', 1.4, 'Dell,HP,Apple,Lenovo'],
+            ['Tablets', 1.3, 'Apple,Samsung'],
+            ['Accessories', 1.0, ''],
+          ];
+          seeds.forEach(([cat, weight, brands]) => {
+            db.run(
+              `INSERT OR IGNORE INTO search_ranking_rules (category_pattern, priority_weight, boost_brands) VALUES (?, ?, ?)`,
+              [cat, weight, brands]
+            );
+          });
+        }
+      });
+
+
       // SCHEMA MIGRATION: Auto-add 'website' column to 'vendors' table if it was created in an older run
       db.all("PRAGMA table_info(vendors)", (err, columns) => {
         if (err) {
