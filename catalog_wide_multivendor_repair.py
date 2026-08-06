@@ -51,7 +51,13 @@ def run_enterprise_catalog_repair():
 
     for vp in vendor_products:
         raw_title = vp["original_title"] or vp["title"] or ""
-        category = vp["pm_category"] or "Mobiles"
+        t_lower = raw_title.lower()
+        if any(kw in t_lower for kw in ["laptop", "notebook", "macbook", "ideapad", "vivobook", "zenbook", "loq", "legion", "pavilion", "thinkpad", "aspire", "tuf", "victus", "rog", "galaxy book", "surface", "omnibook", "chromebook"]):
+            category = "Laptops"
+        elif vp["pm_category"] and vp["pm_category"].strip():
+            category = vp["pm_category"].strip()
+        else:
+            category = "Mobiles"
 
         # Entity Extraction & Brand Normalization
         entities = entity_extractor.extract_all(raw_title, category=category)
@@ -134,9 +140,9 @@ def run_enterprise_catalog_repair():
         slug = f"{master_id}_{ram.lower()}_{storage.lower()}_{color.lower()}".replace(" ", "_").replace("/", "_")
 
         cur.execute("""
-            INSERT INTO product_variants (product_id, color, ram, storage, slug, canonical_hash, variant_identity, hardware_identity)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (master_id, color, ram, storage, slug, hw_hash, hw_hash, hw_id["hardware_identity"]))
+            INSERT INTO product_variants (master_product_id, product_id, color, ram, storage, cpu, canonical_hash, variant_identity, hardware_identity)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (master_id, master_id, color, ram, storage, hw_id["cpu"], hw_hash, hw_hash, hw_id["hardware_identity"]))
         variant_id = cur.lastrowid
         variant_created += 1
 

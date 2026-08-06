@@ -85,12 +85,14 @@ const Prices = ({ product }) => {
       return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
     };
 
-    const rawVendorList = Array.isArray(product?.vendors) 
+    const rawVendorList = Array.isArray(product?.vendorOffers)
+      ? product.vendorOffers
+      : Array.isArray(product?.vendors) 
       ? product.vendors 
+      : (product?.vendors && typeof product.vendors === 'object' && !Array.isArray(product.vendors))
+      ? Object.values(product.vendors)
       : Array.isArray(product?.vendor_listings)
       ? product.vendor_listings
-      : Array.isArray(product?.vendorOffers)
-      ? product.vendorOffers
       : (product?.variants && Array.isArray(product.variants))
       ? product.variants.flatMap(v => v.vendors || v.vendorOffers || [])
       : null;
@@ -152,12 +154,12 @@ const Prices = ({ product }) => {
       if (vendorsArray.length > 0) {
         const uniqueMap = new Map();
         vendorsArray.forEach(v => {
-          const key = `${v.name.toLowerCase()}_${v.discountPrice}`;
-          if (!uniqueMap.has(key)) {
+          const key = v.name.toLowerCase().trim();
+          if (!uniqueMap.has(key) || v.discountPrice < uniqueMap.get(key).discountPrice) {
             uniqueMap.set(key, v);
           }
         });
-        return { vendors: Array.from(uniqueMap.values()) };
+        return { vendors: Array.from(uniqueMap.values()).sort((a, b) => a.discountPrice - b.discountPrice) };
       }
     }
 

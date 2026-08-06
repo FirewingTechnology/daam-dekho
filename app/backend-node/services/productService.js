@@ -241,7 +241,7 @@ export const getProductBySlug = async (slug) => {
       FROM vendor_products vp
       JOIN vendors v ON vp.vendor_id = v.id
       WHERE vp.variant_id = ?
-      GROUP BY vp.vendor_id, vp.price
+      GROUP BY vp.vendor_id
       ORDER BY vp.price ASC
     `, [variant.id]);
 
@@ -357,6 +357,7 @@ export const getProductBySlug = async (slug) => {
     title: product.canonical_title || product.title,
     specifications: allSpecs, // Flattened for frontend Specs.jsx
     vendors: vendorsMap, // Combined from all variants for frontend Prices.jsx
+    vendorOffers: Object.values(vendorsMap).sort((a, b) => Number(a.discounted_Price || a.price || 0) - Number(b.discounted_Price || b.price || 0)),
     variants,
     relatedProducts: processedRelated
   };

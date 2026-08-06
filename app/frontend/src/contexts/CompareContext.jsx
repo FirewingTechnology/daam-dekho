@@ -40,7 +40,9 @@ export const CompareProvider = ({ children }) => {
         try {
           const slug = product.slug || product.id || masterId;
           if (slug) {
-            const res = await fetch(`http://localhost:8001/api/products/${slug}`);
+            const baseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL || 'http://localhost:8001/api';
+            const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/api`;
+            const res = await fetch(`${cleanBaseUrl}/products/${slug}`);
             if (res.ok) {
               const data = await res.json();
               const productData = Array.isArray(data) ? data[0] : data;

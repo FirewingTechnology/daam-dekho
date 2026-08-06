@@ -200,6 +200,51 @@ class EntityExtractor:
             m_gen = macbook.group(2).upper() if macbook.group(2) else ""
             return "MacBook", f"MacBook {macbook.group(1).title()} {m_gen}".strip()
 
+        ideapad = re.search(r'\bideapad\s*(slim\s*\d|pro\s*\d|flex\s*\d|\d+)?\b', t_lower)
+        if ideapad:
+            sub = ideapad.group(1).title() if ideapad.group(1) else ""
+            return "IdeaPad", f"IdeaPad {sub}".strip()
+
+        loq = re.search(r'\bloq\s*(\d{2}[a-z0-9]*|\d+)?\b', t_lower)
+        if loq:
+            sub = loq.group(1).upper() if loq.group(1) else ""
+            return "LOQ", f"LOQ {sub}".strip()
+
+        yoga = re.search(r'\byoga\s*(slim\s*\d|7i|7|9i|9|6|2-in-1|\d+)?\b', t_lower)
+        if yoga:
+            sub = yoga.group(1).title() if yoga.group(1) else ""
+            return "Yoga", f"Yoga {sub}".strip()
+
+        thinkpad = re.search(r'\bthinkpad\s*([a-z]\d{2}|e\d{2}|t\d{2}|x1)?\b', t_lower)
+        if thinkpad:
+            sub = thinkpad.group(1).upper() if thinkpad.group(1) else ""
+            return "ThinkPad", f"ThinkPad {sub}".strip()
+
+        vivobook = re.search(r'\bvivobook\s*(go\s*\d+|pro\s*\d+|go|\d+)?\b', t_lower)
+        if vivobook:
+            sub = vivobook.group(1).title() if vivobook.group(1) else ""
+            return "VivoBook", f"VivoBook {sub}".strip()
+
+        zenbook = re.search(r'\bzenbook\s*(duo|pro|flip|\d+)?\b', t_lower)
+        if zenbook:
+            sub = zenbook.group(1).title() if zenbook.group(1) else ""
+            return "ZenBook", f"ZenBook {sub}".strip()
+
+        tuf = re.search(r'\btuf\s*(?:gaming)?\s*(a\d{2}|f\d{2}|\d+)?\b', t_lower)
+        if tuf:
+            sub = tuf.group(1).upper() if tuf.group(1) else ""
+            return "TUF Gaming", f"TUF Gaming {sub}".strip()
+
+        pavilion = re.search(r'\bpavilion\s*(plus|x360|\d+)?\b', t_lower)
+        if pavilion:
+            sub = pavilion.group(1).title() if pavilion.group(1) else ""
+            return "Pavilion", f"Pavilion {sub}".strip()
+
+        omnibook = re.search(r'\bomnibook\s*(ultra|flip|\d+)?\b', t_lower)
+        if omnibook:
+            sub = omnibook.group(1).title() if omnibook.group(1) else ""
+            return "OmniBook", f"OmniBook {sub}".strip()
+
         victus = re.search(r'\bvictus\s*(\d{2})?\b', t_lower)
         if victus:
             return "Victus", f"Victus {victus.group(1) or '15'}"
@@ -208,9 +253,10 @@ class EntityExtractor:
         if rog:
             return "ROG", f"ROG {rog.group(1).title()}"
 
-        legion = re.search(r'\blegion\s+(slim\s*\d|\d)\b', t_lower)
+        legion = re.search(r'\blegion\s+(slim\s*\d|\d+)?\b', t_lower)
         if legion:
-            return "Legion", f"Legion {legion.group(1).title()}"
+            sub = legion.group(1).title() if legion.group(1) else ""
+            return "Legion", f"Legion {sub}".strip()
 
         # Generic Model extraction
         cleaned = self.clean_marketing_words(title)

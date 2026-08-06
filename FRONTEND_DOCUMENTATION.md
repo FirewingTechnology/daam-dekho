@@ -118,7 +118,7 @@ app/frontend/src/
 ## ⚡ 6. State Management & API Integration
 
 ### Axios Client Setup (`services/api.js`)
-* Configured with base URL pointing to environment variable `VITE_API_BASE_URL` (defaults to `http://localhost:5000/api`).
+* Configured with base URL pointing to environment variable `VITE_API_BASE_URL` (defaults to `http://localhost:8001/api`).
 * Automatic error interceptor handles network fallbacks, 404s, and toast notifications.
 
 ### Core API Service Hooks:

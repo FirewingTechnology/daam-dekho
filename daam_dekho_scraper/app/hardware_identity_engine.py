@@ -47,12 +47,13 @@ class HardwareIdentityEngine:
         elif "rtx 4050" in t_lower or "rtx4050" in t_lower: gpu = "RTX 4050"
         elif "rtx 3050" in t_lower or "rtx3050" in t_lower: gpu = "RTX 3050"
 
-        # Model Sub-Variant Detection (Pro vs Pro+ vs Ultra vs Plus)
+        # Model Sub-Variant Detection (Pro vs Pro+ vs Ultra vs Plus for Mobiles)
         variant_suffix = ""
-        if "pro+" in t_lower or "pro plus" in t_lower: variant_suffix = "PRO_PLUS"
-        elif "pro" in t_lower: variant_suffix = "PRO"
-        elif "ultra" in t_lower: variant_suffix = "ULTRA"
-        elif "plus" in t_lower: variant_suffix = "PLUS"
+        if 'mobile' in (category or '').lower():
+            if "pro+" in t_lower or "pro plus" in t_lower: variant_suffix = "PRO_PLUS"
+            elif "pro" in t_lower: variant_suffix = "PRO"
+            elif "ultra" in t_lower: variant_suffix = "ULTRA"
+            elif "plus" in t_lower: variant_suffix = "PLUS"
 
         # Hardware Identity String (STRICT NO-MERGE KEY)
         identity_str = f"{extracted_brand}|{model}|{variant_suffix}|{cpu}|{gpu}|{ram}|{storage}".lower()

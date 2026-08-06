@@ -236,6 +236,47 @@
                         </select>
                     </div>
 
+                    <!-- SCRAPING LIMITATION OPTIONS (ALWAYS VISIBLE FOR ALL MODES) -->
+                    <div id="v42-scraping-limits-container" style="margin-top: 0.6rem; padding: 0.6rem 0.86rem; background: rgba(30, 41, 59, 0.65); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-sliders" style="color: var(--primary); font-size: 0.88rem;"></i>
+                            <span style="font-size: 0.82rem; font-weight: 600; color: #f1f5f9;">Scraping Limitations & Data Target:</span>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;">
+                            <!-- Max Pages Limit -->
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <label style="font-size: 0.78rem; color: var(--text-dim); white-space: nowrap;"><i class="fas fa-file-lines" style="color: #3b82f6;"></i> Max Pages:</label>
+                                <select id="v42-max-pages-select" class="form-input" style="font-size: 0.8rem; padding: 0.2rem 0.5rem; height: 32px; width: 130px; background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.15);">
+                                    <option value="1">1 Page</option>
+                                    <option value="2">2 Pages</option>
+                                    <option value="3" selected>3 Pages (Default)</option>
+                                    <option value="5">5 Pages</option>
+                                    <option value="10">10 Pages</option>
+                                    <option value="20">20 Pages (Deep)</option>
+                                    <option value="custom">Custom...</option>
+                                </select>
+                                <input type="number" id="v42-max-pages-custom" class="form-input" style="display: none; font-size: 0.8rem; padding: 0.2rem 0.4rem; height: 32px; width: 75px; background: rgba(15, 23, 42, 0.9);" min="1" max="100" value="3" placeholder="Pages">
+                            </div>
+
+                            <!-- Max Data / Products Limit -->
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <label style="font-size: 0.78rem; color: var(--text-dim); white-space: nowrap;"><i class="fas fa-database" style="color: #10b981;"></i> Data Limit (Products):</label>
+                                <select id="v42-max-products-select" class="form-input" style="font-size: 0.8rem; padding: 0.2rem 0.5rem; height: 32px; width: 150px; background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.15);">
+                                    <option value="10">10 Products</option>
+                                    <option value="25">25 Products</option>
+                                    <option value="50" selected>50 Products (Default)</option>
+                                    <option value="100">100 Products</option>
+                                    <option value="250">250 Products</option>
+                                    <option value="500">500 Products</option>
+                                    <option value="999999">Unlimited (All)</option>
+                                    <option value="custom">Custom...</option>
+                                </select>
+                                <input type="number" id="v42-max-products-custom" class="form-input" style="display: none; font-size: 0.8rem; padding: 0.2rem 0.4rem; height: 32px; width: 85px; background: rgba(15, 23, 42, 0.9);" min="1" max="50000" value="50" placeholder="Target">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 4. Advanced Discovery Filters Grid -->
                     <div id="input-group-advanced" class="v42-input-group" style="display: none; margin-top: 0.6rem; grid-template-columns: repeat(4, 1fr); gap: 0.6rem;">
                         <div>
@@ -478,6 +519,17 @@
                     <div class="form-group margin-bottom">
                         <label>Target Query</label>
                         <input type="text" id="scraper-query" value="iphone" placeholder="e.g. Samsung Galaxy, MacBook Pro...">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);"><i class="fas fa-file-lines" style="color: #3b82f6;"></i> Max Crawl Pages</label>
+                            <input type="number" id="scraper-max-pages" class="form-input" value="3" min="1" max="100" placeholder="e.g. 3">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);"><i class="fas fa-database" style="color: #10b981;"></i> Data Limit (Max Products Target)</label>
+                            <input type="number" id="scraper-max-products" class="form-input" value="50" min="1" max="50000" placeholder="e.g. 50">
+                        </div>
                     </div>
 
                     <div class="vendor-checkbox-grid margin-bottom">

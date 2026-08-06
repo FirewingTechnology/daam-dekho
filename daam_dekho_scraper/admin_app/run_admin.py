@@ -301,7 +301,7 @@ def execute_scraper_job(cmd_str, job_label, query=""):
     env["PYTHONUNBUFFERED"] = "1"
 
     log_msg = f"\n================================================================================\n[{datetime.now()}] [ADMIN SUPERVISOR] Launching Job [{job_label}]\nCommand: {cmd_str}\nWorkDir: {parent_dir}\nPython: {sys.executable}\n================================================================================\n"
-    with open(LOG_FILE, "a") as f:
+    with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
         f.write(log_msg)
 
     logger.info(f"Process Supervisor Launching: {cmd_str}")
@@ -316,6 +316,8 @@ def execute_scraper_job(cmd_str, job_label, query=""):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             bufsize=1
         )
 
@@ -336,7 +338,7 @@ def execute_scraper_job(cmd_str, job_label, query=""):
                     last_lines.pop(0)
 
                 # Write line to LOG_FILE
-                with open(LOG_FILE, "a") as f:
+                with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
                     f.write(line)
 
                 line_lower = clean_line.lower()
@@ -480,7 +482,7 @@ def execute_scraper_job(cmd_str, job_label, query=""):
             scraper_state["exit_status"] = "Success (Exit Code 0)"
             scraper_state["eta"] = "Done"
 
-            with open(LOG_FILE, "a") as f:
+            with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
                 f.write(f"\n[{datetime.now()}] [ADMIN SUPERVISOR] Job [{job_label}] SUCCESS. Imported {scraper_state['imported_products']} products & {scraper_state['products_updated']} vendor offers.\n")
         else:
             scraper_state["status"] = "Failed"
@@ -489,7 +491,7 @@ def execute_scraper_job(cmd_str, job_label, query=""):
             scraper_state["exit_status"] = f"Crashed (Exit Code {return_code})"
             scraper_state["error_message"] = "\n".join(last_lines[-20:]) or f"Process exited with code {return_code}"
 
-            with open(LOG_FILE, "a") as f:
+            with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
                 f.write(f"\n[{datetime.now()}] [ADMIN SUPERVISOR] Job [{job_label}] FAILED with Exit Code {return_code}\nTraceback:\n{scraper_state['error_message']}\n")
 
         # Update persistent last_run dictionary
@@ -511,8 +513,10 @@ def execute_scraper_job(cmd_str, job_label, query=""):
             "vendor_count": scraper_state["vendor_count"] or 5,
             "db_rows_added": scraper_state["db_rows_added"]
         }
+        scraper_process = None
 
     except Exception as exc:
+        scraper_process = None
         scraper_state["status"] = "Failed"
         scraper_state["stage"] = "Process Launch Exception"
         scraper_state["progress"] = 100
@@ -520,7 +524,7 @@ def execute_scraper_job(cmd_str, job_label, query=""):
         scraper_state["error_message"] = str(exc)
         logger.error(f"Process Launch Exception: {exc}")
 
-        with open(LOG_FILE, "a") as f:
+        with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
             f.write(f"\n[{datetime.now()}] [ADMIN SUPERVISOR] Process Launch Exception: {exc}\n")
 
 
@@ -967,11 +971,12 @@ def trigger_scraper_action():
 @app.route('/api/status')
 @app.route('/api/scraper/progress')
 def get_scraper_progress():
-    is_running = scraper_process and scraper_process.poll() is None
+    global scraper_process
+    is_running = scraper_process is not None and scraper_process.poll() is None
     active_pid = scraper_process.pid if is_running else None
 
-    # Auto-detect CLI or background python main.py execution
-    if not is_running:
+    # Auto-detect CLI or background python main.py execution ONLY if job status is not already finalized
+    if not is_running and scraper_state.get("status") not in ["Completed", "Failed", "Stopped"]:
         try:
             for p in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
                 try:
@@ -999,7 +1004,7 @@ def get_scraper_progress():
             pass
 
     if is_running:
-        if scraper_state["status"] in ["Idle", "Completed", "Failed", "Never Executed"]:
+        if scraper_state["status"] in ["Idle", "Never Executed"]:
             scraper_state["status"] = "Scraping Active..."
 
         # Live telemetry update (Memory & CPU)

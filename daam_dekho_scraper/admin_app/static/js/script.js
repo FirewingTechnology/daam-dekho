@@ -502,8 +502,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const minPrice = document.getElementById('adv-min-price')?.value || '';
         const maxPrice = document.getElementById('adv-max-price')?.value || '';
         const is5g = document.getElementById('adv-is-5g')?.checked || false;
-        const maxPages = document.getElementById('adv-max-pages')?.value || '3';
-        const maxProducts = document.getElementById('adv-max-products')?.value || '50';
+        
+        // Scraping limitation options (Max Pages & Data Target Limit)
+        let maxPages = 3;
+        const pSel = document.getElementById('v42-max-pages-select')?.value;
+        if (pSel === 'custom') {
+            maxPages = parseInt(document.getElementById('v42-max-pages-custom')?.value || 3);
+        } else if (pSel) {
+            maxPages = parseInt(pSel);
+        } else {
+            maxPages = parseInt(document.getElementById('scraper-max-pages')?.value || document.getElementById('adv-max-pages')?.value || 3);
+        }
+
+        let maxProducts = 50;
+        const prSel = document.getElementById('v42-max-products-select')?.value;
+        if (prSel === 'custom') {
+            maxProducts = parseInt(document.getElementById('v42-max-products-custom')?.value || 50);
+        } else if (prSel) {
+            maxProducts = parseInt(prSel);
+        } else {
+            maxProducts = parseInt(document.getElementById('scraper-max-products')?.value || document.getElementById('adv-max-products')?.value || 50);
+        }
 
         // Determine effective query string if needed
         let query = productName;
@@ -1783,12 +1802,42 @@ async function loadPipelineExplorer() {
     }
 }
 
+    // --- SCRAPING LIMITS: Custom option toggle logic ---
+    document.getElementById('v42-max-pages-select')?.addEventListener('change', function() {
+        const customInput = document.getElementById('v42-max-pages-custom');
+        if (customInput) customInput.style.display = this.value === 'custom' ? 'inline-block' : 'none';
+    });
+    document.getElementById('v42-max-products-select')?.addEventListener('change', function() {
+        const customInput = document.getElementById('v42-max-products-custom');
+        if (customInput) customInput.style.display = this.value === 'custom' ? 'inline-block' : 'none';
+    });
+
+    // --- DISCOVERY MODE RADIO: Toggle input groups ---
+    document.querySelectorAll('input[name="discovery_mode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const mode = this.value;
+            const exactGroup = document.getElementById('input-group-exact-product');
+            const brandGroup = document.getElementById('input-group-brand');
+            const categoryGroup = document.getElementById('input-group-category');
+            const advGroup = document.getElementById('input-group-advanced');
+            if (exactGroup) exactGroup.style.display = (mode === 'EXACT_PRODUCT') ? 'flex' : 'none';
+            if (brandGroup) brandGroup.style.display = (mode === 'BRAND_CATALOG' || mode === 'BRAND_CATEGORY') ? 'flex' : 'none';
+            if (categoryGroup) categoryGroup.style.display = (mode === 'CATEGORY_CATALOG' || mode === 'BRAND_CATEGORY') ? 'flex' : 'none';
+            if (advGroup) advGroup.style.display = (mode === 'ADVANCED_DISCOVERY') ? 'grid' : 'none';
+        });
+    });
+
     // --- v5.0 ENTERPRISE CRAWL CENTER HANDLERS ---
     document.getElementById('btn-v50-start-crawl')?.addEventListener('click', async () => {
         const mode = document.querySelector('input[name="discovery_mode"]:checked')?.value || 'EXACT_PRODUCT';
         const brand = document.getElementById('v42-brand-select')?.value || '';
         const category = document.getElementById('v42-category-select')?.value || 'Mobiles';
-        const maxPages = document.getElementById('adv-max-pages')?.value || '3';
+
+        // Use the new scraping limits panel
+        let maxPages = 3;
+        const pSel = document.getElementById('v42-max-pages-select')?.value;
+        if (pSel === 'custom') maxPages = parseInt(document.getElementById('v42-max-pages-custom')?.value || 3);
+        else if (pSel) maxPages = parseInt(pSel);
 
         try {
             const res = await fetch('/api/crawl/start', {

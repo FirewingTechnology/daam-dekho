@@ -110,7 +110,7 @@ PRAGMA synchronous = NORMAL;
 ```
 app/backend-node/
 ├── app.js                    # Express app initialization, middleware stack, global error handler
-├── server.js                 # Server entry point listening on PORT 5000
+├── server.js                 # Server entry point listening on PORT 8001
 ├── utils/
 │   └── db.js                 # SQLite database connection manager & query helpers
 ├── routes/

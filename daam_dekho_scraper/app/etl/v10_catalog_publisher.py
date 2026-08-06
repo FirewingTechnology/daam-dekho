@@ -42,6 +42,13 @@ class WebsiteCatalogPublisherEngine:
                     canonical_title = excluded.canonical_title,
                     base_image = COALESCE(products_master.base_image, excluded.base_image)
             """, (canon_title, canon_title, canon_title, canon_title, brand, category, image, master_hash))
+
+            cursor.execute("SELECT id FROM products_master WHERE master_identity = ?", (master_hash,))
+            pm_row = cursor.fetchone()
+            if pm_row:
+                pm_id = pm_row[0]
+                cursor.execute("UPDATE product_variants SET product_id = ? WHERE master_product_id = ?", (pm_id, m_id))
+
             published_masters += 1
 
             # Count published vendor offers for this master

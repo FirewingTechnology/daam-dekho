@@ -84,11 +84,6 @@ class MasterAndVariantBuilderEngine:
             cursor.execute("SELECT id FROM products_master WHERE master_identity = ?", (master_hash,))
             if cursor.fetchone():
                 cursor.execute("UPDATE products_master SET canonical_title = ? WHERE master_identity = ?", (master_title, master_hash))
-            else:
-                cursor.execute("""
-                    INSERT INTO products_master (title, clean_title, normalized_title, canonical_title, brand, category, base_image, master_identity)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (master_title, master_title, master_title, master_title, c_brand, default_category, hero_img, master_hash))
 
             # Phase 6: Upsert Hardware Variant in Layer 3 (product_variants)
             cursor.execute("SELECT id FROM product_variants WHERE variant_identity_hash = ?", (variant_hash,))
