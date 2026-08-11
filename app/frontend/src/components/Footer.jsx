@@ -19,7 +19,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="footer bg-[#111] dark:bg-black pt-12 pb-6 border-t border-white/10" ref={footerRef}>
+    <footer className="footer bg-[#111] dark:bg-black pt-12 pb-24 sm:pb-8 border-t border-white/10" ref={footerRef}>
       <div className="maxscreen screen-margin grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8">
         {/* Brand Info */}
         <div className="md:col-span-1">
@@ -37,22 +37,22 @@ const Footer = () => {
         {/* Quick Links */}
         <div>
           <h4 className="text-white font-bold text-sm mb-3">Explore</h4>
-          <ul className="flex flex-col gap-2 text-xs text-gray-400">
-            <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
-            <li><Link to="/products" className="hover:text-primary transition-colors">All Products</Link></li>
-            <li><Link to="/category" className="hover:text-primary transition-colors">Categories</Link></li>
-            <li><Link to="/compare" className="hover:text-primary transition-colors">Compare Deals</Link></li>
+          <ul className="flex flex-col gap-2.5 text-xs text-gray-400">
+            <li><Link to="/" className="hover:text-primary transition-colors py-1 inline-block">Home</Link></li>
+            <li><Link to="/products" className="hover:text-primary transition-colors py-1 inline-block">All Products</Link></li>
+            <li><Link to="/category" className="hover:text-primary transition-colors py-1 inline-block">Categories</Link></li>
+            <li><Link to="/compare" className="hover:text-primary transition-colors py-1 inline-block">Compare Deals</Link></li>
           </ul>
         </div>
 
         {/* Company Links */}
         <div>
           <h4 className="text-white font-bold text-sm mb-3">Company</h4>
-          <ul className="flex flex-col gap-2 text-xs text-gray-400">
-            <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-            <li><Link to="/contact-us" className="hover:text-primary transition-colors">Contact Us</Link></li>
-            <li><Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-            <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Use</Link></li>
+          <ul className="flex flex-col gap-2.5 text-xs text-gray-400">
+            <li><Link to="/about" className="hover:text-primary transition-colors py-1 inline-block">About Us</Link></li>
+            <li><Link to="/contact-us" className="hover:text-primary transition-colors py-1 inline-block">Contact Us</Link></li>
+            <li><Link to="/privacy-policy" className="hover:text-primary transition-colors py-1 inline-block">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-primary transition-colors py-1 inline-block">Terms of Use</Link></li>
           </ul>
         </div>
 
@@ -60,15 +60,15 @@ const Footer = () => {
         <div className="sm:col-span-2 md:col-span-2">
           <h3 className="text-white font-bold text-sm mb-2">Price Drop Alerts Newsletter</h3>
           <p className="text-gray-400 text-xs mb-3">Get instant notifications when prices drop on your favorite gadgets.</p>
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 w-full">
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 w-full">
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-xs bg-white/5 text-white border border-white/10 focus:outline-none focus:border-primary"
+              className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-xs bg-white/5 text-white border border-white/10 focus:outline-none focus:border-primary min-touch-target"
             />
-            <button type="submit" className="btn-primary py-2 px-5 text-xs whitespace-nowrap shrink-0">
+            <button type="submit" className="btn-primary py-2.5 px-5 text-xs font-extrabold whitespace-nowrap shrink-0 min-touch-target">
               Subscribe
             </button>
           </form>

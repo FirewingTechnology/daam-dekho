@@ -1,8 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { get } from '../utils/db.js';
 
-// BUG-08 FIX: No silent fallback to weak hardcoded secret
-const JWT_SECRET = process.env.JWT_SECRET || 'daamdekho_secret_12345';
+const getJwtSecret = () => {
+  if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET environment variable is required in production mode!');
+    process.exit(1);
+  }
+  return process.env.JWT_SECRET || 'daamdekho_secret_dev_12345';
+};
 
 export const protect = async (req, res, next) => {
   let token;
@@ -16,7 +21,7 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     // BUG-04 FIX: Check that the user still exists in the database.
     // A valid JWT can belong to a deleted user — without this check, every
     // subsequent req.user.id access would throw a TypeError.

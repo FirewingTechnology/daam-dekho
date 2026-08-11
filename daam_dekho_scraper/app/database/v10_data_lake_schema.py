@@ -407,9 +407,20 @@ def init_v10_data_lake_schema(conn=None):
                 emi_plans_json TEXT,
                 bank_offers_json TEXT,
                 coupons_json TEXT,
+                source_type TEXT DEFAULT 'LIVE_VENDOR',
+                source_hash TEXT,
+                search_url TEXT,
+                pdp_http_status INTEGER DEFAULT 200,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        cursor.execute("PRAGMA table_info(vendor_offers)")
+        vo_cols = [row[1] for row in cursor.fetchall()]
+        for col in ['source_type', 'source_hash', 'search_url', 'pdp_http_status']:
+            if col not in vo_cols:
+                try: cursor.execute(f"ALTER TABLE vendor_offers ADD COLUMN {col} TEXT")
+                except Exception: pass
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS price_history (
@@ -531,6 +542,55 @@ def init_v10_data_lake_schema(conn=None):
                 spec_key TEXT,
                 spec_value TEXT,
                 UNIQUE(variant_id, spec_key)
+            )
+        ''')
+
+        # 10. Spec Provenance Table (Zero-Trust Spec Lineage)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS spec_provenance (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                normalized_product_id INTEGER NOT NULL,
+                field_name TEXT NOT NULL,
+                raw_value TEXT,
+                normalized_value TEXT NOT NULL,
+                source_type TEXT DEFAULT 'SPEC_TABLE', -- JSON_LD, SPEC_TABLE, HTML_REGEX
+                selector TEXT,
+                source_field TEXT,
+                source_url TEXT,
+                confidence INTEGER DEFAULT 100,
+                status TEXT DEFAULT 'VERIFIED',
+                vendor TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        cursor.execute("PRAGMA table_info(spec_provenance)")
+        sp_cols = [row[1] for row in cursor.fetchall()]
+        for col in ['source_type', 'selector', 'status']:
+            if col not in sp_cols:
+                try: cursor.execute(f"ALTER TABLE spec_provenance ADD COLUMN {col} TEXT")
+                except Exception: pass
+
+        # 12. Pipeline Lineage Records Table (Machine-Generated Funnel Analytics)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pipeline_lineage_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                crawl_id TEXT NOT NULL,
+                candidate_id INTEGER,
+                raw_search_id INTEGER,
+                pdp_fetch_id INTEGER,
+                raw_product_id INTEGER,
+                normalized_entity_id INTEGER,
+                master_product_id INTEGER,
+                variant_id INTEGER,
+                offer_id INTEGER,
+                from_stage TEXT NOT NULL,
+                to_stage TEXT NOT NULL,
+                status TEXT NOT NULL, -- SUCCESS, FAILED, INCOMPLETE, BLOCKED, PUBLISHED
+                reason_code TEXT,
+                vendor TEXT NOT NULL,
+                url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 

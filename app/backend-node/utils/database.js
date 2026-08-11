@@ -30,6 +30,26 @@ export function getDatabase() {
   return db;
 }
 
+export async function get(sql, params = []) {
+  const db = getDatabase();
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+}
+
+export async function query(sql, params = []) {
+  const db = getDatabase();
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows || []);
+    });
+  });
+}
+
 export async function getAllCategories() {
   const db = getDatabase();
   return new Promise((resolve, reject) => {

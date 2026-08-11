@@ -353,9 +353,9 @@ def execute_real_pipeline():
         master_count += 1
 
         cur.execute("""
-            INSERT INTO product_variants (product_id, color, ram, storage, slug)
-            VALUES (?, ?, ?, ?, ?)
-        """, (master_id, v["color"], v["ram"], v["storage"], m["slug"]))
+            INSERT INTO product_variants (product_id, color, ram, storage)
+            VALUES (?, ?, ?, ?)
+        """, (master_id, v["color"], v["ram"], v["storage"]))
         variant_id = cur.lastrowid
         variant_count += 1
 

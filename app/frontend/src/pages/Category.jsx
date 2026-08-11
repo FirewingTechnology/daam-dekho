@@ -6,11 +6,11 @@ import { FiSmartphone, FiTv, FiMonitor, FiHeadphones, FiTablet, FiGrid } from "r
 
 
 const categories = [
-  { name: "Mobiles", slug: "mobiles", icon: <FiSmartphone />, desc: "Top Smartphones, 5G Phones & Accessories", bg: "from-blue-600 to-indigo-700" },
-  { name: "Laptops", slug: "laptops", icon: <FiMonitor />, desc: "Gaming Laptops, Ultrabooks & MacBooks", bg: "from-purple-600 to-violet-800" },
-  { name: "Tablets", slug: "tablets", icon: <FiTablet />, desc: "iPads, Android Tablets & Stylus Devices", bg: "from-pink-600 to-rose-700" },
-  { name: "TVs", slug: "tvs", icon: <FiTv />, desc: "Smart 4K OLED, QLED & Android Televisions", bg: "from-amber-500 to-orange-700" },
-  { name: "Accessories", slug: "accessories", icon: <FiHeadphones />, desc: "TWS Earbuds, Headphones, Chargers & Cases", bg: "from-emerald-600 to-teal-800" },
+  { name: "Mobiles", queryCategory: "Mobile", slug: "mobiles", icon: <FiSmartphone />, desc: "Top Smartphones, 5G Phones & Accessories", bg: "from-blue-600 to-indigo-700" },
+  { name: "Laptops", queryCategory: "Laptop", slug: "laptops", icon: <FiMonitor />, desc: "Gaming Laptops, Ultrabooks & MacBooks", bg: "from-purple-600 to-violet-800" },
+  { name: "Tablets", queryCategory: "Tablets", slug: "tablets", icon: <FiTablet />, desc: "iPads, Android Tablets & Stylus Devices", bg: "from-pink-600 to-rose-700" },
+  { name: "TVs", queryCategory: "TVs", slug: "tvs", icon: <FiTv />, desc: "Smart 4K OLED, QLED & Android Televisions", bg: "from-amber-500 to-orange-700" },
+  { name: "Accessories", queryCategory: "Mobile Accessories", slug: "accessories", icon: <FiHeadphones />, desc: "TWS Earbuds, Headphones, Chargers & Cases", bg: "from-emerald-600 to-teal-800" },
 ];
 
 const Category = () => {
@@ -65,7 +65,7 @@ const Category = () => {
         </div>
 
         {/* Category Product Grid */}
-        <GridProducts category={activeCategory.name} />
+        <GridProducts category={activeCategory.queryCategory || activeCategory.name} />
       </div>
     </div>
   );

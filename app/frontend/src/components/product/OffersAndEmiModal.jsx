@@ -44,50 +44,57 @@ const OffersAndEmiModal = ({ isOpen, onClose, vendorName, vendorLogo, price, off
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fadeIn"
+      onClick={onClose}
+    >
       {/* Modal Container */}
       <div 
-        className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-100 transform transition-all duration-300 scale-100"
+        className="bg-white w-full max-w-4xl rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[90vh] border border-gray-100 transform transition-all duration-300 pb-safe"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Pull Handle Indicator */}
+        <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2 sm:hidden flex-shrink-0" />
+
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 text-white px-6 py-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 text-white px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             {vendorLogo && (
-              <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center shadow-md">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white p-1 flex items-center justify-center shadow-md flex-shrink-0">
                 <img src={vendorLogo} alt={vendorName} className="max-h-full max-w-full object-contain" />
               </div>
             )}
             <div>
-              <h2 className="text-xl font-bold tracking-tight">
+              <h2 className="text-base sm:text-xl font-bold tracking-tight">
                 {vendorName} Offers & EMI Plans
               </h2>
-              <p className="text-xs text-gray-300 font-medium">
-                Live price: <span className="text-green-400 font-bold text-sm ml-1">₹{numericPrice.toLocaleString('en-IN')}</span>
+              <p className="text-[11px] sm:text-xs text-gray-300 font-medium">
+                Live price: <span className="text-green-400 font-bold text-xs sm:text-sm ml-1">₹{numericPrice.toLocaleString('en-IN')}</span>
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors flex-shrink-0 min-touch-target"
+            aria-label="Close modal"
           >
-            <FaTimes size={16} />
+            <FaTimes size={18} />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex overflow-x-auto no-scrollbar bg-gray-50 border-b border-gray-200 px-4 pt-3 gap-2">
+        <div className="flex overflow-x-auto no-scrollbar bg-gray-50 border-b border-gray-200 px-3 sm:px-4 pt-2.5 gap-1.5 sm:gap-2 flex-shrink-0">
           {[
             { id: "all", label: "All Offers", icon: <FaTag size={12} /> },
-            { id: "emi", label: "⚡ EMI & No Cost EMI", icon: <FaBolt size={12} /> },
+            { id: "emi", label: "⚡ EMI Plans", icon: <FaBolt size={12} /> },
             { id: "bank", label: "💳 Bank Offers", icon: <FaCreditCard size={12} /> },
-            { id: "exchange", label: "🔄 Exchange Bonus", icon: <FaExchangeAlt size={12} /> },
-            { id: "cashback", label: "🎁 Cashback & Coupons", icon: <FaGift size={12} /> },
+            { id: "exchange", label: "🔄 Exchange", icon: <FaExchangeAlt size={12} /> },
+            { id: "cashback", label: "🎁 Cashback", icon: <FaGift size={12} /> },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl font-semibold text-xs sm:text-sm whitespace-nowrap transition-all border-b-2 ${
+              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl font-semibold text-xs whitespace-nowrap transition-all border-b-2 ${
                 activeTab === tab.id
                   ? "bg-white text-blue-600 border-blue-600 shadow-sm"
                   : "text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-100"
@@ -100,7 +107,7 @@ const OffersAndEmiModal = ({ isOpen, onClose, vendorName, vendorLogo, price, off
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 flex-1 custom-scrollbar">
           
           {/* TAB 1: EMI & NO COST EMI */}
           {(activeTab === "all" || activeTab === "emi") && (

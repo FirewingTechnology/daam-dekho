@@ -25,7 +25,7 @@ const parseSpecs = (specs) => {
 };
 
 // Helper to get value with fallbacks for different spec keys
-const getSpecValue = (specs, keynames) => {
+const _getSpecValue = (specs, keynames) => {
   if (!specs) return "N/A";
   
   const parsedSpecs = parseSpecs(specs);

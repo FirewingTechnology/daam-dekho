@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+import { toast } from "react-toastify";
 
 const CompareContext = createContext();
 
@@ -25,12 +26,12 @@ export const CompareProvider = ({ children }) => {
 
     try {
       if (compareList.some((p) => getMasterId(p) === masterId)) {
-        console.log(`[CompareContext] Product ${masterId} already in compare list, skipping duplicate`);
+        toast.info("This product is already in your comparison list.");
         return;
       }
 
       if (compareList.length >= 4) {
-        console.warn(`[CompareContext] List full (${compareList.length}), cannot add ${masterId}`);
+        toast.warning("Maximum 4 products allowed for comparison! Remove a product to add another.");
         return;
       }
       
@@ -40,7 +41,8 @@ export const CompareProvider = ({ children }) => {
         try {
           const slug = product.slug || product.id || masterId;
           if (slug) {
-            const baseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL || 'http://localhost:8001/api';
+            const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL;
+            const baseUrl = envUrl || (import.meta.env.DEV ? 'http://localhost:8001/api' : 'https://api.daamdekho.com/api');
             const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/api`;
             const res = await fetch(`${cleanBaseUrl}/products/${slug}`);
             if (res.ok) {
@@ -70,7 +72,7 @@ export const CompareProvider = ({ children }) => {
           return currentList;
         }
 
-        console.log(`[CompareContext] ✅ Added unique master product ${masterId} (total: ${currentList.length + 1})`);
+        toast.success(`Added "${fullProduct.title || 'Product'}" to comparison!`);
         return [...currentList, fullProduct];
       });
     } finally {

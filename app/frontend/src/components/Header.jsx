@@ -32,11 +32,9 @@ const Header = () => {
   const { compareList } = useCompare();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
-  const langDropdownRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,25 +49,33 @@ const Header = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
-      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target)) {
-        setIsLangDropdownOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <header className={`glass-header transition-all duration-500 ${scrolled ? "py-3 shadow-lg" : "py-4"}`}>
+    <header className={`glass-header transition-all duration-500 ${scrolled ? "py-2.5 shadow-lg" : "py-3 sm:py-4"}`}>
       <div className="maxscreen screen-margin flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="group flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black text-xl group-hover:rotate-12 transition-transform duration-300">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black text-lg sm:text-xl group-hover:rotate-12 transition-transform duration-300">
             D
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-xl font-black tracking-tighter text-white">DAAM DEKHO</span>
-            <span className="text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Price Tracker</span>
+            <span className="text-lg sm:text-xl font-black tracking-tighter text-white">DAAM DEKHO</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Price Tracker</span>
           </div>
         </Link>
 
@@ -91,7 +97,7 @@ const Header = () => {
             <li className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-1 text-sm font-medium text-gray-300 hover:text-primary transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-sm font-medium text-gray-300 hover:text-primary transition-colors cursor-pointer min-touch-target"
               >
                 More <FiChevronDown className={`transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`} />
               </button>
@@ -120,7 +126,7 @@ const Header = () => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
+            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 min-touch-target flex items-center justify-center"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             {theme === 'dark' ? <FiSun className="text-amber-400" size={18} /> : <FiMoon size={18} />}
@@ -129,7 +135,7 @@ const Header = () => {
           {/* Compare Badge */}
           <Link 
             to="/compare" 
-            className="relative p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
+            className="relative p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 min-touch-target flex items-center justify-center"
             title="View Comparison Drawer"
           >
             <FiLayers size={18} />
@@ -147,15 +153,20 @@ const Header = () => {
         </nav>
 
         {/* Mobile Action Controls */}
-        <div className="flex items-center gap-3 lg:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link to="/products" className="p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center">
+            <FiSearch size={18} />
+          </Link>
+
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-white/10 text-white"
+            className="p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center"
+            aria-label="Toggle Theme"
           >
             {theme === 'dark' ? <FiSun className="text-amber-400" size={18} /> : <FiMoon size={18} />}
           </button>
 
-          <Link to="/compare" className="relative p-2.5 rounded-full bg-white/10 text-white">
+          <Link to="/compare" className="relative p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center">
             <FiLayers size={18} />
             {compareList.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center">
@@ -165,49 +176,57 @@ const Header = () => {
           </Link>
 
           <button 
-            className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors min-touch-target flex items-center justify-center"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Navigation Menu"
+            aria-expanded={isMobileMenuOpen}
           >
-            {isMobileMenuOpen ? <FiX size={28} /> : <FiMenu size={28} />}
+            {isMobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
           </button>
         </div>
       </div>
 
-
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 top-[72px] bg-black/95 backdrop-blur-xl z-40 md:hidden animate-fade-in">
-          <nav className="flex flex-col p-8 gap-6">
+        <div 
+          className="fixed inset-0 top-[60px] sm:top-[72px] bg-black/95 backdrop-blur-xl z-40 lg:hidden overflow-y-auto custom-scrollbar animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsMobileMenuOpen(false);
+          }}
+        >
+          <nav className="flex flex-col p-6 sm:p-8 gap-6 pb-28 max-w-md mx-auto">
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}
-                className={({ isActive }) => `text-2xl font-bold ${isActive ? "text-primary" : "text-white"}`}
+                className={({ isActive }) => `text-xl sm:text-2xl font-bold py-2 ${isActive ? "text-primary" : "text-white"}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
               </NavLink>
             ))}
             
-            <div className="h-px bg-white/10 my-4" />
+            <div className="h-px bg-white/10 my-2" />
             
-            <div className="flex gap-6">
+            <div className="flex gap-4">
               {socialLinks.map((item, index) => (
                 <a
                   key={index}
                   href={item.path}
-                  className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-primary hover:text-black transition-all"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-primary hover:text-black transition-all"
                 >
                   {item.icon}
                 </a>
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-2">
+            <div className="flex flex-wrap gap-2.5 mt-2">
               {languages.map((lang, index) => (
                 <button
                   key={index}
-                  className="px-4 py-2 text-sm rounded-full bg-white/5 text-white hover:bg-primary hover:text-black transition-all"
+                  className="px-3.5 py-2 text-xs font-bold rounded-full bg-white/5 text-white hover:bg-primary hover:text-black transition-all"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {lang.name}
@@ -217,10 +236,10 @@ const Header = () => {
 
             <Link 
               to="/products" 
-              className="mt-8 btn-primary text-center py-4 text-lg"
+              className="mt-4 btn-primary text-center py-3.5 text-base font-extrabold w-full"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Start Searching
+              Start Searching Products
             </Link>
           </nav>
         </div>

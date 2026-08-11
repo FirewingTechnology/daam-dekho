@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Section = ({ title, labels, products = [], sectionKey }) => {
+const Section = ({ title, labels, products = [], _sectionKey }) => {
   // sectionKey = "design" | "display" | "network&connectivity" etc.
   const [isOpen, setIsOpen] = useState(true);
 

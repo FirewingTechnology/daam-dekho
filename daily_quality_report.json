@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-08-10T00:06:57.049274",
+  "generated_at": "2026-08-12T01:43:19.472707",
   "overall_status": "\u2705 ALL SYSTEMS PASSED",
   "hard_failures": 0,
   "warnings": 0,
   "metrics": {
-    "total_master_products": 38,
-    "total_variants": 52,
+    "total_master_products": 10,
+    "total_variants": 10,
     "total_vendor_offers": 319,
     "unspecified_color_pct": 0.0,
-    "multi_vendor_coverage_pct": 55.3,
+    "multi_vendor_coverage_pct": 0.0,
     "duplicate_variants_count": 0,
     "marketing_noise_titles_count": 0,
     "invalid_price_count": 0,
-    "avg_vendors_per_product": 8.39
+    "avg_vendors_per_product": 31.9
   }
 }

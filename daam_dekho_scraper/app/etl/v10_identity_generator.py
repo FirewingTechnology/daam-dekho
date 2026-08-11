@@ -72,7 +72,7 @@ class DeterministicIdentityGenerator:
             st = str(storage or '').strip().lower()
             d = str(display or '').strip().lower()
             net = str(network or '').strip().lower()
-            col = str(color or 'default').strip().lower()
+            col = str(color or 'unknown').strip().lower()
 
             raw_str = f"VARIANT_HW_{master_hash}_{b}_{s}_{m}_{c}_{g}_{r}_{st}_{d}_{net}_{col}"
 

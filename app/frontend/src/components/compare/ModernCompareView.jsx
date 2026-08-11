@@ -159,7 +159,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
 
   const [activeTab, setActiveTab] = useState("all");
   const [highlightDiff, setHighlightDiff] = useState(false);
-  const [highlightBest, setHighlightBest] = useState(true);
+  const highlightBest = true;
   const [expandedSections, setExpandedSections] = useState({
     winner: true,
     overview: true,
@@ -184,17 +184,17 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
 
   if (products.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-20 flex flex-col items-center justify-center text-center px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-28 sm:pt-32 pb-24 flex flex-col items-center justify-center text-center px-4">
         <SEO title="Compare Products - DaamDekho" description="Side by side product specifications & live price comparison." />
-        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-primary-dark dark:text-primary text-3xl mb-6">
+        <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center text-primary-dark dark:text-primary text-3xl mb-6 shadow-md border border-primary/30">
           <FiSliders />
         </div>
-        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">No Products Selected for Comparison</h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md text-sm mb-8">
-          Add up to 4 products to compare detailed specifications, display quality, performance & prices side-by-side.
+        <h2 className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">No Products Selected for Comparison</h2>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md text-xs sm:text-sm mb-8 leading-relaxed">
+          Add up to 4 products to compare detailed specifications, display quality, performance, camera specs & live prices side-by-side across India's top vendors.
         </p>
-        <Link to="/products" className="btn-primary text-black font-bold px-8 py-3.5 text-base">
-          Browse & Add Products
+        <Link to="/products" className="btn-primary text-black font-extrabold px-8 py-3.5 text-sm sm:text-base rounded-full shadow-lg active:scale-95 transition-all">
+          Browse & Add Products →
         </Link>
       </div>
     );
@@ -203,10 +203,24 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
   const cheapestPriceInGroup = Math.min(...products.map(p => getLowestPrice(p)).filter(p => p > 0));
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-28 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-24 sm:pt-28 pb-28 transition-colors duration-300">
       <SEO title={`Comparing ${products.length} Products - DaamDekho`} description="Side-by-side specification comparison and live price matrix." />
 
       <div className="maxscreen screen-margin">
+        {/* 1 Product Prompt Banner */}
+        {products.length === 1 && (
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-4 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-amber-600 dark:text-amber-400 text-xl font-bold">💡</span>
+              <p className="text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200">
+                You have selected <span className="font-extrabold">{products[0].title || '1 product'}</span>. Add at least 1 more product to unlock side-by-side spec comparison.
+              </p>
+            </div>
+            <Link to="/products" className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs shrink-0 active:scale-95 transition-all shadow-sm">
+              + Add More Products
+            </Link>
+          </div>
+        )}
         
         {/* Breadcrumb Navigation & Controls */}
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800">
@@ -285,6 +299,12 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
               <span>{tab.label}</span>
             </button>
           ))}
+        </div>
+
+        {/* Mobile Swipe Hint */}
+        <div className="md:hidden flex items-center justify-between text-xs text-blue-700 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-4 py-2.5 rounded-2xl mb-4 font-bold">
+          <span>👈 Swipe horizontally to compare products</span>
+          <span className="text-[10px] bg-blue-200 dark:bg-blue-900 px-2 py-0.5 rounded-full uppercase">Scroll</span>
         </div>
 
         {/* UNIFIED COMPARISON MATRIX TABLE */}

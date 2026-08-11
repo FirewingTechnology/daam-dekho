@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { FaStar, FaTag, FaTruck, FaCreditCard, FaPercent, FaBolt, FaChevronRight } from "react-icons/fa";
-import { safeRender } from "../../utils/renderUtils";
+import { FaTag, FaCreditCard, FaBolt, FaChevronRight } from "react-icons/fa";
 import { Amazon, Flipkart, Croma, VS } from "../../assets/ImportImages";
 import OffersAndEmiModal from "./OffersAndEmiModal";
 

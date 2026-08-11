@@ -110,15 +110,15 @@ const SearchBar = () => {
         </div>
 
         {/* Search Input */}
-        <div className="flex-grow flex items-center px-4">
-          <FiSearch className="text-gray-400 mr-3 text-lg" />
+        <div className="flex-grow flex items-center px-4 py-1 sm:py-0 min-touch-target">
+          <FiSearch className="text-gray-400 mr-2.5 text-lg shrink-0" />
           <input
             type="text"
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search for iPhone 15, MacBooks, Sony WH-1000..."
-            className="w-full h-14 bg-transparent text-sm md:text-base text-gray-800 placeholder-gray-400 focus:outline-none"
+            className="w-full h-12 md:h-14 bg-transparent text-base text-gray-800 placeholder-gray-400 focus:outline-none"
           />
         </div>
 
@@ -126,7 +126,7 @@ const SearchBar = () => {
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="h-14 md:h-auto px-8 bg-black text-primary font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+          className="h-12 md:h-auto px-6 sm:px-8 bg-black text-primary font-extrabold text-xs sm:text-sm uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 min-touch-target"
         >
           {loading ? <ClipLoader color="#dcfe50" size={18} /> : "Search"}
         </button>
@@ -134,13 +134,13 @@ const SearchBar = () => {
 
       {/* Results Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-slide-up">
-          <div className="p-2 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center px-4">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-slide-up">
+          <div className="p-2.5 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center px-4">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Search Results</span>
             <span className="text-[10px] font-medium text-gray-400">{products.length} items found</span>
           </div>
           
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[60vh] md:max-h-[400px] overflow-y-auto custom-scrollbar">
             {products.length > 0 ? (
               <div className="grid grid-cols-1 divide-y divide-gray-50">
                 {products.map((p, idx) => (

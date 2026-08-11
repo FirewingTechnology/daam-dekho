@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { RxCross2 } from "react-icons/rx";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import CompareBox from "./compare/CompareBox";
 import CompareModal from "./compare/CompareModal";
 import { useNavigate } from "react-router-dom";
+import { useCompare } from "../../contexts/CompareContext";
 
 const TABS = ["Mobile", "Laptop", "Mobile Accessories", "Laptop Accessories"];
 
@@ -15,7 +15,7 @@ const schema = z
         _id: z.string(),
         name: z.string(),
         price: z.string(),
-        image: z.string().url(),
+        image: z.string(),
       })
       .nullable()
   )
@@ -28,18 +28,20 @@ const CompareNow = () => {
   const [comparisons, setComparisons] = useState([null, null, null, null]);
   const [modalIndex, setModalIndex] = useState(null);
   const navigate = useNavigate();
+  const { addToCompare } = useCompare();
 
   const handleSelectProduct = (product) => {
-    console.log("product", product);
     try {
-      if (modalIndex !== null) {
-        // Get image - support multiple formats
+      if (modalIndex !== null && product) {
+        // Also sync to global CompareContext
+        addToCompare(product);
+
         const getImageUrl = () => {
           if (product.image?.thumbnail) return product.image.thumbnail;
           if (product.image_url) return product.image_url;
+          if (product.base_image) return product.base_image;
           if (product.image?.urls?.[0]) return product.image.urls[0];
           
-          // Try image_urls as JSON string
           if (product.image_urls) {
             try {
               const urls = typeof product.image_urls === 'string' 
@@ -48,18 +50,14 @@ const CompareNow = () => {
               if (Array.isArray(urls) && urls.length > 0 && urls[0]) {
                 return urls[0];
               }
-            } catch (e) {
-              console.log('Could not parse image_urls');
+            } catch (_e) {
+              // ignore
             }
           }
-          
           return '';
         };
 
-        // Get price - support both vendor and single vendor formats
         let priceDisplay = "Price not available";
-        
-        // Try vendors format first
         if (product?.vendors?.flipkart?.discountprice) {
           priceDisplay = `Rs. ${product.vendors.flipkart.discountprice}/-`;
         } else if (product?.vendors?.amazon?.discountprice) {
@@ -74,8 +72,10 @@ const CompareNow = () => {
 
         const updated = [...comparisons];
         updated[modalIndex] = {
-          _id: product._id,
-          name: product.title,
+          ...product,
+          _id: product._id || product.id,
+          id: product.id || product._id,
+          name: product.title || product.name,
           price: priceDisplay,
           image: getImageUrl(),
         };
@@ -94,14 +94,13 @@ const CompareNow = () => {
   };
 
   const handleCompare = () => {
-    try {
-      schema.parse(comparisons);
-      toast.success("Comparison started 🚀");
-      // Navigate to compare page or API call
-      navigate("/compare", { state: comparisons });
-    } catch (err) {
-      toast.error(err.errors[0].message);
+    const selected = comparisons.filter(Boolean);
+    if (selected.length < 2) {
+      toast.warn("Please select at least 2 products to compare side-by-side!");
+      return;
     }
+    toast.success("Navigating to comparison matrix 🚀");
+    navigate("/compare", { state: selected });
   };
 
   useEffect(() => {
@@ -110,19 +109,18 @@ const CompareNow = () => {
   }, [activeTab]);
 
   return (
-    <div className="flex flex-col items-center w-full px-4 pt-16">
-      {/* Tabs */}
-      <div className="flex justify-center gap-2 w-full max-w-2xl sm:max-w-4xl mb-8">
+    <div className="flex flex-col items-center w-full px-4 pt-12">
+      {/* Tabs - Scrollable on mobile without overflow */}
+      <div className="flex justify-start sm:justify-center gap-2 w-full max-w-4xl mb-8 overflow-x-auto no-scrollbar pb-2">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`relative px-3 xs:px-6 py-2 text-sm sm:text-2xl font-semibold transition-all 
-              ${
-                activeTab === tab
-                  ? "bg-primary text-black rounded-t-md shadow-md border-b-[2px] border-gray-400"
-                  : "text-gray-400 hover:text-black border-b-[2px] border-gray-400"
-              }`}
+            className={`whitespace-nowrap px-4 py-2.5 text-xs sm:text-lg font-bold rounded-xl transition-all shadow-xs min-touch-target ${
+              activeTab === tab
+                ? "bg-primary text-black scale-105 shadow-md"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
           >
             {tab}
           </button>

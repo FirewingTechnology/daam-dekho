@@ -1,6 +1,13 @@
 import axios from 'axios';
 
-let rawUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+let rawUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL;
+if (!rawUrl) {
+  if (import.meta.env.DEV) {
+    rawUrl = 'http://localhost:8001/api';
+  } else {
+    rawUrl = 'https://api.daamdekho.com/api';
+  }
+}
 if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
   rawUrl = `https://${rawUrl}`;
 }

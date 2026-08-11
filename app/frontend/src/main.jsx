@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Clear old stale localStorage keys on startup
 try {
   localStorage.removeItem("compareList");
-} catch (e) {
+} catch (_e) {
   // silently ignore
 }
 

@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 
 import DeviceComparisonHeader from "../components/compare/DeviceComparisonHeader";
 import DeviceCards from "../components/compare/DeviceCards";
-import { fallbackDevices } from "../constants/deviceConstants";
 import DesignSection from "../components/compare/DesignSection";
 import DisplaySection from "../components/compare/DisplaySection";
 import NetworkSection from "../components/compare/NetworkSection";
@@ -21,7 +20,7 @@ import { useCompare } from "../contexts/CompareContext";
 export const Compare = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { compareList, removeFromCompare } = useCompare();
+  const { compareList } = useCompare();
   const comparisons = location.state || compareList;
 
   const [products, setProducts] = useState([]);

@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import Home from './Home';
 import { apiEndpoints } from '../services/api';
 import { MemoryRouter } from 'react-router-dom';

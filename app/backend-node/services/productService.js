@@ -206,21 +206,35 @@ export const getProductBySlug = async (slug) => {
     product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 1, coverage_pct: 20.0, missing_vendors: [] };
   }
 
-  // Query Completeness Score safely
-  let compScore = 95;
-  try {
-    const valData = await get(`SELECT completeness_score FROM product_validation WHERE product_id = ?`, [product.id]);
-    if (valData?.completeness_score) compScore = valData.completeness_score;
-  } catch (e) {}
+  // Dynamically compute zero-trust quality metrics
+  const variantsForScore = await query(`SELECT * FROM product_variants WHERE product_id = ?`, [product.id]);
+  let specScore = 50;
+  let hasValidSpecs = false;
+  if (variantsForScore && variantsForScore.length > 0) {
+    const v = variantsForScore[0];
+    let count = 0;
+    if (v.cpu && v.cpu.toUpperCase() !== 'UNKNOWN') count += 25;
+    if (v.ram && v.ram.toUpperCase() !== 'UNKNOWN') count += 25;
+    if (v.storage && v.storage.toUpperCase() !== 'UNKNOWN') count += 25;
+    if (v.color && !['default', 'unspecified', 'unknown'].includes(v.color.toLowerCase())) count += 25;
+    specScore = count;
+    hasValidSpecs = count > 50;
+  }
+
+  const vendorsFoundCount = product.vendor_coverage?.vendors_found_count || 1;
+  const coverageScore = Math.min(100, vendorsFoundCount * 20);
+  const imageScore = product.image_urls.length > 1 ? 100 : (product.image_urls.length === 1 ? 75 : 0);
+  const offerScore = vendorsFoundCount > 0 ? 100 : 0;
+  const dynamicOverallScore = Math.round((specScore * 0.4) + (coverageScore * 0.3) + (imageScore * 0.15) + (offerScore * 0.15));
 
   product.completeness_score = {
-    overall_score: compScore,
-    vendor_coverage_score: Math.min(100, (product.vendor_coverage?.vendors_found_count || 1) * 20),
-    specification_score: 95,
-    image_score: product.image_urls.length > 1 ? 95 : 75,
-    offer_score: 90,
-    validation_score: 98,
-    trust_score: 96
+    overall_score: dynamicOverallScore,
+    vendor_coverage_score: coverageScore,
+    specification_score: specScore,
+    image_score: imageScore,
+    offer_score: offerScore,
+    validation_score: hasValidSpecs ? 100 : 50,
+    trust_score: dynamicOverallScore
   };
 
   const variants = await query(`SELECT * FROM product_variants WHERE product_id = ?`, [product.id]);

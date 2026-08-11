@@ -2,11 +2,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { run, get } from '../utils/db.js';
 
-// BUG-08 FIX: Warn clearly if secret is not set; no silent weak fallback in prod
-const JWT_SECRET = process.env.JWT_SECRET || 'daamdekho_secret_12345';
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  WARNING: JWT_SECRET is not set. Using insecure default. Set JWT_SECRET in .env before deploying.');
-}
+const getJwtSecret = () => {
+  if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET environment variable is required in production mode!');
+    process.exit(1);
+  }
+  return process.env.JWT_SECRET || 'daamdekho_secret_dev_12345';
+};
 
 export const register = async (userData) => {
   const { name, email, password, pincode } = userData;
@@ -18,7 +20,7 @@ export const register = async (userData) => {
   );
   
   const user = await get(`SELECT id, name, email, pincode FROM users WHERE id = ?`, [result.lastID]);
-  const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: user.id }, getJwtSecret(), { expiresIn: '7d' });
   
   return { user, token };
 };
@@ -30,7 +32,7 @@ export const login = async (email, password) => {
   const isMatch = await bcrypt.compare(password, user.password_hash);
   if (!isMatch) throw new Error('Invalid credentials');
   
-  const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ id: user.id }, getJwtSecret(), { expiresIn: '7d' });
   
   const { password_hash, ...userWithoutPassword } = user;
   return { user: userWithoutPassword, token };

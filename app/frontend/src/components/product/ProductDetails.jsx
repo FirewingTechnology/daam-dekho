@@ -102,28 +102,39 @@ const ProductDetails = () => {
     );
   }
 
+  const lowestPrice = (() => {
+    if (!product) return 0;
+    if (product.vendors && typeof product.vendors === 'object') {
+      const prices = Object.values(product.vendors)
+        .map(v => parseFloat(String(v.discounted_price || v.discounted_Price || v.price || 0).replace(/[^\d.]/g, '')))
+        .filter(p => p > 0);
+      if (prices.length > 0) return Math.min(...prices);
+    }
+    return parseFloat(String(product.discounted_Price || product.price || 0).replace(/[^\d.]/g, '')) || 0;
+  })();
+
   return (
-    <div className="bg-[#f4f7f9] min-h-screen pt-24 pb-12 font-['Inter',_sans-serif]">
+    <div className="bg-[#f4f7f9] min-h-screen pt-20 sm:pt-24 pb-24 lg:pb-12 font-['Inter',_sans-serif]">
       {product && (
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
           {/* 1. TOP SECTION - Heading & Rating */}
-          <div className="mb-8 animate-fadeIn">
+          <div className="mb-6 sm:mb-8 animate-fadeIn">
             <div className="flex flex-col gap-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
                 {product.title || product.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 mt-2">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
                 {product.rating > 0 && (
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-xs border border-gray-100">
                     <div className="flex items-center text-yellow-500">
                       {renderStars(product.rating)}
                     </div>
-                    <span className="text-sm font-bold text-gray-700">
+                    <span className="text-xs sm:text-sm font-bold text-gray-700">
                       {product.rating.toFixed(1)} / 5
                     </span>
                   </div>
                 )}
-                <div className="text-sm font-medium text-blue-600 hover:underline cursor-pointer">
+                <div className="text-xs sm:text-sm font-bold text-blue-600 hover:underline cursor-pointer bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
                   {product.brand || "Official Store"}
                 </div>
               </div>
@@ -131,11 +142,11 @@ const ProductDetails = () => {
           </div>
 
           {/* MAIN 3-COLUMN LAYOUT */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
             
             {/* LEFT COLUMN: Product Media (3 cols) - Order 1 */}
             <div className="lg:col-span-3 space-y-6 order-1">
-              <div className="bg-white rounded-2xl shadow-premium p-6 lg:sticky lg:top-28">
+              <div className="bg-white rounded-2xl shadow-premium p-4 sm:p-6 lg:sticky lg:top-28">
                 <Info
                   product={product}
                   renderStars={renderStars}
@@ -145,12 +156,12 @@ const ProductDetails = () => {
             </div>
 
             {/* RIGHT COLUMN: Compare Prices (4 cols) - Order 2 on mobile, 3 on desktop */}
-            <div className="lg:col-span-4 lg:sticky lg:top-28 order-2 lg:order-3">
+            <div id="prices-section" className="lg:col-span-4 lg:sticky lg:top-28 order-2 lg:order-3">
               <div className="bg-white rounded-2xl shadow-premium overflow-hidden border border-gray-100">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                <div className="bg-gray-50 px-5 sm:px-6 py-4 border-b border-gray-100">
                   <div className="flex justify-between items-end">
                     <div>
-                      <h2 className="text-xl font-bold text-gray-800">Compare Prices</h2>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-800">Compare Prices</h2>
                       <p className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         Updated recently
@@ -171,12 +182,12 @@ const ProductDetails = () => {
             {/* CENTER COLUMN: Specifications (5 cols) - Order 3 on mobile, 2 on desktop */}
             <div className="lg:col-span-5 order-3 lg:order-2">
               <div className="bg-white rounded-2xl shadow-premium overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <div className="bg-gray-50 px-5 sm:px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
                     <span className="text-blue-600">📊</span> Core Specifications
                   </h2>
                 </div>
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <Specs
                     product={product}
                     renderStars={renderStars}
@@ -187,6 +198,27 @@ const ProductDetails = () => {
             </div>
 
           </div>
+        </div>
+      )}
+
+      {/* Fixed Mobile Bottom CTA Bar */}
+      {product && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3 lg:hidden pb-safe">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Lowest Price</span>
+            <span className="text-lg sm:text-xl font-black text-green-600 leading-none">
+              {lowestPrice > 0 ? `₹${lowestPrice.toLocaleString('en-IN')}` : 'Check Prices'}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const el = document.getElementById("prices-section");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="btn-primary py-2.5 px-5 text-sm font-extrabold shadow-md flex items-center gap-1.5 active:scale-95"
+          >
+            View Deals
+          </button>
         </div>
       )}
     </div>

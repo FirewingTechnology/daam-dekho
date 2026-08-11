@@ -97,62 +97,68 @@ const ProductCard = ({ product }) => {
   const productRating = parseFloat(product.rating) || 0;
 
   return (
-    <div className="max-w-[14rem] border border-gray-200 rounded p-4 flex-shrink-0 bg-white hover:shadow-md transition">
-      <div className="relative mb-3">
-        {product.label && (
-          <span
-            className={`absolute top-2 left-2 text-[10px] px-2 py-1 rounded text-white font-semibold uppercase ${
-              product?.label === "HOT"
-                ? "bg-red-500"
-                : product?.label === "BEST DEALS"
-                ? "bg-blue-500"
-                : "bg-gray-500"
-            }`}
-          >
-            {product.label}
+    <div className="w-full flex flex-col justify-between border border-gray-200/80 rounded-2xl p-3 sm:p-4 bg-white hover:border-blue-300 hover:shadow-md transition-all duration-300 group">
+      <div>
+        <div className="relative mb-3 aspect-square max-h-40 sm:max-h-44 w-full flex items-center justify-center overflow-hidden bg-gray-50 rounded-xl p-2">
+          {product.label && (
+            <span
+              className={`absolute top-2 left-2 text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full text-white font-bold uppercase z-10 shadow-xs ${
+                product?.label === "HOT"
+                  ? "bg-red-500"
+                  : product?.label === "BEST DEALS"
+                  ? "bg-blue-600"
+                  : "bg-gray-700"
+              }`}
+            >
+              {product.label}
+            </span>
+          )}
+          <img
+            src={
+              imgError 
+                ? generatePlaceholderImage()
+                : (imageUrl || generatePlaceholderImage())
+            }
+            alt={product.title || 'Product'}
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            referrerPolicy="no-referrer"
+            onError={() => {
+              if (!imgError) setImgError(true);
+            }}
+            loading="lazy"
+          />
+        </div>
+
+        <RatingStars rating={productRating} reviews={product.reviews || 0} />
+        <Link to={`/product/${product.product_id || product.id || product._id}`} className="block mt-1.5">
+          <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.25rem] group-hover:text-blue-600 transition-colors">
+            {product.title}
+          </h3>
+        </Link>
+      </div>
+
+      <div className="mt-2.5 pt-2 border-t border-gray-100 flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-baseline gap-1.5">
+          <span className="text-sm sm:text-base text-blue-600 font-extrabold tracking-tight">
+            {finalPrice > 0 ? `₹${finalPrice.toLocaleString('en-IN')}` : 'N/A'}
           </span>
-        )}
-        <img
-          src={
-            imgError 
-              ? generatePlaceholderImage()
-              : (imageUrl || generatePlaceholderImage())
-          }
-          alt={product.title || 'Product'}
-          className="w-full h-40 object-contain blend-soft"
-          referrerPolicy="no-referrer"
-          onError={() => {
-            if (!imgError) setImgError(true);
-          }}
-          loading="lazy"
-        />
-      </div>
-
-      <RatingStars rating={productRating} reviews={product.reviews || 0} />
-      <Link to={`/product/${product.product_id || product.id || product._id}`}>
-        <h3 className="text-sm font-medium mt-1 line-clamp-2">
-          {product.title}
-        </h3>
-      </Link>
-      <div className="mt-1 text-sm">
-        <span className="text-blue-600 font-bold mr-2">
-          {finalPrice > 0 ? `₹${finalPrice.toLocaleString('en-IN')}` : 'N/A'}
-        </span>
-
-        <p>
-          {originalPrice > 0 && discountPrice > 0 && originalPrice !== discountPrice && (
-            <span className="text-red-600 line-through mr-2">
-              ₹{originalPrice.toLocaleString('en-IN')}
-            </span>
-          )}
           {discountPercent > 0 && (
-            <span className="text-green-600 font-semibold">
-              ({discountPercent}% OFF)
+            <span className="text-[10px] sm:text-xs font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+              {discountPercent}% OFF
             </span>
           )}
-        </p>
+        </div>
+
+        {originalPrice > 0 && discountPrice > 0 && originalPrice !== discountPrice && (
+          <div className="text-[11px] text-gray-400 line-through font-medium">
+            MRP ₹{originalPrice.toLocaleString('en-IN')}
+          </div>
+        )}
+
+        <div className="mt-1">
+          <CompareButton product={product} />
+        </div>
       </div>
-      <CompareButton product={product} />
     </div>
   );
 };

@@ -77,7 +77,8 @@ class MasterProductEntity:
 
         t_lower = title.lower()
         for series_name in self.SERIES_DICTIONARY:
-            if re.search(r'\b' + re.escape(series_name) + r'\b', t_lower):
+            pattern = r'\b' + re.escape(series_name) + r'(?:\b|\d|\s)'
+            if re.search(pattern, t_lower):
                 return series_name.title()
         return ""
 
@@ -131,17 +132,24 @@ class MasterProductEntity:
         return f"{m.group(1)}th Gen" if m else ""
 
     def _extract_cpu(self, title: str, specs: Dict[str, Any]) -> str:
-        cpu_spec = specs.get('cpu') or specs.get('processor') or specs.get('chipset')
-        if cpu_spec: return str(cpu_spec).strip().upper()
+        cpu_spec = specs.get('cpu') or specs.get('processor') or specs.get('chipset') or specs.get('processor_name')
+        if cpu_spec:
+            candidate = str(cpu_spec).strip()
+            # Strict rejection: Never allow CPU to be title, brand, or generic model
+            if candidate.lower() in [title.lower(), self.brand.lower(), self.model.lower(), 'n/a', 'none', 'unknown', '']:
+                pass
+            elif re.search(r'\b(Snapdragon|Exynos|Dimensity|Helio|Core|Ryzen|Apple|A\d+|M\d+)\b', candidate, re.IGNORECASE):
+                return candidate.upper()
 
-        m_cpu = re.search(r'\b(Core\s*i[3579]|Ryzen\s*[3579]|M[1234]\s*(?:Pro|Max|Ultra)?|Snapdragon\s*[0-9A-Z\s]+|Exynos\s*\d+|Dimensity\s*\d+)\b', title, re.IGNORECASE)
-        return m_cpu.group(1).upper() if m_cpu else ""
+        m_cpu = re.search(r'\b(Snapdragon\s*(?:8\s*Elite|[0-9A-Z\s]+)?|Exynos\s*\d+|Dimensity\s*\d+[A-Z]?|Helio\s*[A-Z0-9]+|Intel\s*Core\s*(?:Ultra\s*)?[iI][3579]-?\w*|Core\s*Ultra\s*\d+|Ryzen\s*[3579]\s*\d{4}|Apple\s*A\d+\s*Pro|Apple\s*A\d+|M[1234]\s*(?:Pro|Max|Ultra)?)\b', title, re.IGNORECASE)
+        return m_cpu.group(1).strip().upper() if m_cpu else "UNKNOWN"
 
     def _extract_gpu(self, title: str, specs: Dict[str, Any]) -> str:
         gpu_spec = specs.get('gpu') or specs.get('graphics')
-        if gpu_spec: return str(gpu_spec).strip().upper()
+        if gpu_spec and str(gpu_spec).strip().lower() not in ['n/a', 'none', 'unknown', '']:
+            return str(gpu_spec).strip().upper()
         m_gpu = re.search(r'\b(RTX\s*\d{4}|GTX\s*\d{4}|Radeon\s*[A-Z0-9]+|Intel\s*Iris|Apple\s*GPU)\b', title, re.IGNORECASE)
-        return m_gpu.group(1).upper() if m_gpu else ""
+        return m_gpu.group(1).upper() if m_gpu else "UNKNOWN"
 
     def _extract_ram(self, title: str, specs: Dict[str, Any]) -> str:
         ram_spec = specs.get('ram') or specs.get('memory')
@@ -149,15 +157,21 @@ class MasterProductEntity:
             m = re.search(r'(\d+)\s*GB', str(ram_spec), re.IGNORECASE)
             if m: return f"{m.group(1)}GB"
         m_ram = re.search(r'\b(\d{1,2})\s*GB\s*(?:RAM|DDR[45]|LPDDR[45])?\b', title, re.IGNORECASE)
-        return f"{m_ram.group(1)}GB" if m_ram else ""
+        return f"{m_ram.group(1)}GB" if m_ram else "UNKNOWN"
 
     def _extract_storage(self, title: str, specs: Dict[str, Any]) -> str:
         st_spec = specs.get('storage') or specs.get('ssd') or specs.get('rom') or specs.get('hdd')
         if st_spec:
             m = re.search(r'(\d+)\s*(GB|TB)', str(st_spec), re.IGNORECASE)
             if m: return f"{m.group(1)}{m.group(2).upper()}"
-        m_st = re.search(r'\b(\d{3,4}|\d{1,2})\s*(GB|TB)\s*(?:SSD|ROM|NVMe|Storage)?\b', title, re.IGNORECASE)
-        return f"{m_st.group(1)}{m_st.group(2).upper()}" if m_st else ""
+        m_st = re.search(r'\b(\d{2,4})\s*(GB|TB)\s*(?:SSD|ROM|NVMe|Storage)\b', title, re.IGNORECASE)
+        if m_st: return f"{m_st.group(1)}{m_st.group(2).upper()}"
+        m_st2 = re.search(r'\b(64|128|256|512|1024|1TB|2TB)\s*(GB|TB)?\b', title, re.IGNORECASE)
+        if m_st2:
+            val = m_st2.group(1).upper()
+            unit = m_st2.group(2).upper() if m_st2.group(2) else ("TB" if "TB" in val else "GB")
+            return f"{val.replace('TB', '')}{unit}"
+        return "UNKNOWN"
 
     def _extract_display_size(self, title: str, specs: Dict[str, Any]) -> str:
         d_spec = specs.get('display') or specs.get('screen_size')
@@ -165,43 +179,44 @@ class MasterProductEntity:
             m = re.search(r'(\d{1,2}(?:\.\d)?)\s*(?:inch|\"|\')?', str(d_spec), re.IGNORECASE)
             if m: return f"{m.group(1)}\""
         m_d = re.search(r'\b(\d{1,2}(?:\.\d)?)\s*(?:inch|\"|\')\b', title, re.IGNORECASE)
-        return f"{m_d.group(1)}\"" if m_d else ""
+        return f"{m_d.group(1)}\"" if m_d else "UNKNOWN"
 
     def _extract_display_resolution(self, title: str, specs: Dict[str, Any]) -> str:
         res_spec = specs.get('resolution')
         if res_spec: return str(res_spec).strip()
         m_res = re.search(r'\b(4K|FHD\+|FHD|QHD|HD\+|1920x1080|2560x1440|3840x2160)\b', title, re.IGNORECASE)
-        return m_res.group(1).upper() if m_res else ""
+        return m_res.group(1).upper() if m_res else "UNKNOWN"
 
     def _extract_panel_type(self, title: str, specs: Dict[str, Any]) -> str:
         p_spec = specs.get('panel') or specs.get('display_type')
         if p_spec: return str(p_spec).strip()
         m_p = re.search(r'\b(AMOLED|OLED|IPS|LCD|Retina|Super AMOLED)\b', title, re.IGNORECASE)
-        return m_p.group(1).title() if m_p else ""
+        return m_p.group(1).title() if m_p else "UNKNOWN"
 
     def _extract_refresh_rate(self, title: str, specs: Dict[str, Any]) -> str:
         r_spec = specs.get('refresh_rate')
         if r_spec: return str(r_spec).strip()
         m_r = re.search(r'\b(\d{2,3})\s*Hz\b', title, re.IGNORECASE)
-        return f"{m_r.group(1)}Hz" if m_r else ""
+        return f"{m_r.group(1)}Hz" if m_r else "UNKNOWN"
 
     def _extract_operating_system(self, title: str, specs: Dict[str, Any]) -> str:
         os_spec = specs.get('os') or specs.get('operating_system')
         if os_spec: return str(os_spec).strip()
         m_os = re.search(r'\b(Windows\s*11|Windows\s*10|macOS|Android\s*\d*|iOS\s*\d*|ChromeOS)\b', title, re.IGNORECASE)
-        return m_os.group(1).title() if m_os else ""
+        return m_os.group(1).title() if m_os else "UNKNOWN"
 
     def _extract_battery(self, title: str, specs: Dict[str, Any]) -> str:
         b_spec = specs.get('battery') or specs.get('battery_capacity')
         if b_spec: return str(b_spec).strip()
         m_b = re.search(r'\b(\d{4,5})\s*mAh\b', title, re.IGNORECASE)
-        return f"{m_b.group(1)} mAh" if m_b else ""
+        return f"{m_b.group(1)} mAh" if m_b else "UNKNOWN"
 
     def _extract_color(self, title: str, specs: Dict[str, Any]) -> str:
         c_spec = specs.get('color') or specs.get('colour')
-        if c_spec: return str(c_spec).strip().title()
-        m_c = re.search(r'\b(Black|Silver|Grey|Gray|Blue|Red|Gold|White|Green|Purple|Lavender|Awesome Iceblue|Awesome Navy|Moonlight Silver)\b', title, re.IGNORECASE)
-        return m_c.group(1).title() if m_c else "Default"
+        if c_spec and str(c_spec).strip().lower() not in ['default', 'unspecified', 'n/a', 'none', '']:
+            return str(c_spec).strip().title()
+        m_c = re.search(r'\b(Awesome Black|Awesome Navy|Awesome Iceblue|Awesome Olive|Awesome Violet|Titanium Gray|Titanium Black|Titanium Yellow|Natural Titanium|Desert Titanium|White Titanium|Black Titanium|Phantomb Black|Cream|Green|Lavender|Graphite|Moonlight Silver|Black|Silver|Grey|Gray|Blue|Red|Gold|White|Purple)\b', title, re.IGNORECASE)
+        return m_c.group(1).title() if m_c else "UNKNOWN"
 
     def _extract_network(self, title: str, specs: Dict[str, Any]) -> str:
         n_spec = specs.get('network') or specs.get('connectivity')

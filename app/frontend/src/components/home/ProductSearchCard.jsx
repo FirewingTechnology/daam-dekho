@@ -20,7 +20,7 @@ const ProductSearchCard = ({ product }) => {
         if (Array.isArray(urls) && urls.length > 0 && urls[0] && !urls[0].includes('placeholder')) {
           return urls[0];
         }
-      } catch (e) {
+      } catch (_e) {
         console.log('Could not parse image_urls');
       }
     }

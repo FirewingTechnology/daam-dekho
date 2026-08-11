@@ -52,12 +52,22 @@ const ProductGrid = ({ filters, query = "", sortby = "1" }) => {
         minPrice = "",
         maxPrice = "",
         brands = [],
-        features = {},
       } = filters || {};
+
+      const normalizeCategory = (cat) => {
+        if (!cat) return undefined;
+        const clean = String(cat).trim().toLowerCase();
+        if (clean === "laptops" || clean === "laptop") return "Laptop";
+        if (clean === "mobiles" || clean === "mobile" || clean === "smartphones") return "Mobile";
+        if (clean === "tablets" || clean === "tablet") return "Tablets";
+        if (clean === "tvs" || clean === "tv") return "TVs";
+        if (clean === "accessories") return "Mobile Accessories";
+        return cat;
+      };
 
       const params = {
         query: query || undefined,
-        category: category || undefined,
+        category: normalizeCategory(category) || undefined,
         brands: brands?.length > 0 ? brands.join(",") : undefined,
         min_price: minPrice || undefined,
         max_price: maxPrice || undefined,
@@ -117,12 +127,10 @@ const ProductGrid = ({ filters, query = "", sortby = "1" }) => {
   const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
 
   return (
-    <div className="p-2 sm:p-6 w-full">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="p-2 sm:p-6 w-full max-w-full">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
         {!loader &&
           products.map((product) => (
-            // BUG-29 FIX: Use product.id as key instead of array index.
-            // Array indices cause incorrect reconciliation when products reorder.
             <ProductCard key={product.id || product._id} product={product} />
           ))}
       </div>
