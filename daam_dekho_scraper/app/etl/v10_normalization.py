@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from app.logger import get_logger
 from app.database.manager import db_manager
 from app.brand_alias import brand_alias_engine
+from app.entity_extractor import entity_extractor
 
 logger = get_logger("v10_normalization")
 
@@ -124,7 +125,15 @@ class AttributeNormalizationEngine:
             c_cpu = c_cpu.strip()
 
             c_gpu = str(gpu or '').strip().upper()
-            c_color = str(color or 'Default').strip().title()
+            
+            raw_color_str = str(color or '').strip()
+            if raw_color_str and raw_color_str.lower() not in ['n/a', 'none', 'unknown', 'default']:
+                resolved_color = raw_color_str
+            else:
+                specs_dict = {"color": color, "ram": ram, "storage": storage, "cpu": cpu}
+                resolved_color = entity_extractor.extract_color(raw_title, specs_dict)
+            
+            c_color = str(resolved_color or 'Unspecified').strip().title()
 
             # Clean RAM (e.g., '8 GB' -> '8GB')
             c_ram = str(ram or '').strip().upper()

@@ -7,6 +7,17 @@ const formatKey = (key) =>
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .replace(/\s+([A-Z])/g, " $1");
 
+const INVALID_SPEC_VALUES = new Set(['default', 'unspecified', 'n/a', 'none', 'unknown', 'null', 'undefined']);
+
+const formatSpecValue = (val) => {
+  if (val === null || val === undefined) return null;
+  const strVal = String(val).trim();
+  if (!strVal || INVALID_SPEC_VALUES.has(strVal.toLowerCase())) {
+    return null;
+  }
+  return strVal;
+};
+
 // Helper to parse specs safely
 const parseSpecsObject = (specs) => {
   if (!specs) return {};
@@ -49,13 +60,15 @@ const Specs = ({ product }) => {
         // Sort specs into categories
         const categorized = {};
         Object.entries(parsed).forEach(([key, value]) => {
+          const cleanVal = formatSpecValue(value);
+          if (!cleanVal) return;
+
           let found = false;
-          
           for (const [category, keywords] of Object.entries(categories)) {
             if (category === 'Other Specifications') continue;
             if (keywords.some(kw => key.toLowerCase().includes(kw.toLowerCase()))) {
               if (!categorized[category]) categorized[category] = {};
-              categorized[category][key] = value;
+              categorized[category][key] = cleanVal;
               found = true;
               break;
             }
@@ -63,7 +76,7 @@ const Specs = ({ product }) => {
           
           if (!found) {
             if (!categorized['Other Specifications']) categorized['Other Specifications'] = {};
-            categorized['Other Specifications'][key] = value;
+            categorized['Other Specifications'][key] = cleanVal;
           }
         });
         
@@ -178,12 +191,20 @@ const Specs = ({ product }) => {
 
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  const sections = getSpecsSections();
+  const rawSections = getSpecsSections();
 
-  const filteredSections = Object.entries(sections).filter(
-    ([, specs]) =>
-      specs && Object.values(specs).some((val) => val !== null && val !== "" && val !== undefined)
-  );
+  const filteredSections = Object.entries(rawSections)
+    .map(([sectionKey, specs]) => {
+      const cleanSpecs = {};
+      Object.entries(specs || {}).forEach(([k, v]) => {
+        const cleanV = formatSpecValue(v);
+        if (cleanV) {
+          cleanSpecs[k] = cleanV;
+        }
+      });
+      return [sectionKey, cleanSpecs];
+    })
+    .filter(([, specs]) => Object.keys(specs).length > 0);
 
   if (!filteredSections.length) return <div className="p-4 text-center text-gray-500 text-sm">No specifications available</div>;
 

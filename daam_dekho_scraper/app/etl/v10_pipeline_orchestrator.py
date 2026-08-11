@@ -84,6 +84,14 @@ class EnterpriseV10ETLPipelineOrchestrator:
         elapsed = round(time.time() - start_time, 2)
         logger.info(f"🎉 [v10.0 ETL PIPELINE COMPLETED in {elapsed}s] Raw Data Lake: {len(raw_ids)} | Master Products: {len(set(master_ids))} | Published Master Products: {pub_res['published_masters']} | Published Offers: {pub_res['published_offers']}")
 
+        # Phase 11: Automated Data Quality Validation Gatekeeper
+        logger.info("🛡️ Phase 11: Executing Automated Data Quality Validation Gatekeeper...")
+        try:
+            from generate_daily_quality_report import generate_daily_quality_report
+            generate_daily_quality_report()
+        except Exception as qe:
+            logger.error(f"⚠️ Quality Validation execution error: {qe}")
+
         return {
             "status": "SUCCESS",
             "session_id": acq_res["session_id"],

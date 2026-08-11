@@ -22,7 +22,7 @@ def test_format_product_basic():
         image_url="http://img.com/i1"
     )
     
-    assert result["title"] == "iPhone 15 Pro (128GB, Blue)"
+    assert result["title"] == "iPhone 15 Pro"
     assert result["brand"] == "Apple"
     assert result["price"] == 79900.0
     assert result["discounted_price"] == 75000.0

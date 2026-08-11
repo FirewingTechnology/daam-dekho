@@ -2448,6 +2448,23 @@ def api_vendor_sync():
     from app.vendor_sync_engine import vendor_sync_engine
     return jsonify({"status": "success", "vendor_health": vendor_sync_engine.get_vendor_health()})
 
+@app.route('/api/quality-report')
+def api_quality_report():
+    report_file = os.path.join(parent_dir, "daily_quality_report.json")
+    if os.path.exists(report_file):
+        try:
+            with open(report_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return jsonify({"status": "success", "report": data})
+        except Exception as e:
+            pass
+    try:
+        from generate_daily_quality_report import generate_daily_quality_report
+        data = generate_daily_quality_report()
+        return jsonify({"status": "success", "report": data})
+    except Exception as err:
+        return jsonify({"status": "error", "message": str(err)})
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

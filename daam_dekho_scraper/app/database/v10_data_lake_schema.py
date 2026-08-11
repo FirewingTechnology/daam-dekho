@@ -356,7 +356,7 @@ def init_v10_data_lake_schema(conn=None):
                 ram TEXT,
                 storage TEXT,
                 display_size TEXT,
-                color TEXT DEFAULT 'Default',
+                color TEXT DEFAULT 'Unspecified',
                 edition TEXT,
                 network TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -445,7 +445,7 @@ def init_v10_data_lake_schema(conn=None):
                 master_product_id INTEGER NOT NULL,
                 variant_identity_hash TEXT UNIQUE NOT NULL,
                 cpu TEXT, gpu TEXT, ram TEXT, storage TEXT, display_size TEXT,
-                color TEXT DEFAULT 'Default', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                color TEXT DEFAULT 'Unspecified', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 

@@ -1,5 +1,6 @@
 import re
 from app.logger import get_logger
+from app.entity_extractor import entity_extractor
 
 logger = get_logger("spec_extractor")
 
@@ -9,7 +10,7 @@ class SpecExtractor:
         """Extracts specs from title based on category."""
         specs = {
             "ram": "N/A", "rom": "N/A", "camera": "N/A", 
-            "display": "N/A", "battery": "N/A", "processor": "N/A"
+            "display": "N/A", "battery": "N/A", "processor": "N/A", "color": "N/A"
         }
         if not title: return specs
         t = title.upper()
@@ -28,6 +29,10 @@ class SpecExtractor:
                 rom_match = re.search(r'(\d+)\s*GB\s*(?:ROM|STORAGE|INTERNAL)', t)
                 if rom_match: specs["rom"] = f"{rom_match.group(1)} GB"
 
+            color_found = entity_extractor.extract_color(title)
+            if color_found:
+                specs["color"] = color_found.strip().title()
+
         elif category == "laptops":
             # RAM
             ram_match = re.search(r'(\d+)\s*GB\s*RAM', t)
@@ -40,6 +45,10 @@ class SpecExtractor:
             # Processor
             proc_match = re.search(r'(INTEL CORE I[3579]|RYZEN [3579]|APPLE M[123])', t)
             if proc_match: specs["processor"] = proc_match.group(0)
+
+            color_found = entity_extractor.extract_color(title)
+            if color_found:
+                specs["color"] = color_found.strip().title()
 
         return specs
 
@@ -58,6 +67,7 @@ class SpecExtractor:
             elif "battery" in k: specs["battery"] = v
             elif "camera" in k and "front" not in k: specs["camera"] = v
             elif "front camera" in k or "selfie" in k: specs["front_camera"] = v
+            elif "color" in k or "colour" in k: specs["color"] = v
             
         return specs
 

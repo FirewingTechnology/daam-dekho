@@ -246,7 +246,7 @@ export const getProductBySlug = async (slug) => {
     `, [variant.id]);
 
     variant.vendors = variantVendors.map(v => {
-      v.variant_label = [variant.storage, variant.ram, variant.color !== 'Default' ? variant.color : null].filter(Boolean).join(' | ');
+      v.variant_label = [variant.storage, variant.ram, (variant.color && !['default', 'unspecified'].includes(variant.color.toLowerCase())) ? variant.color : null].filter(Boolean).join(' | ');
       v.storage = variant.storage;
       v.ram = variant.ram;
       

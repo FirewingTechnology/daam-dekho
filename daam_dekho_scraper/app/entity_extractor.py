@@ -35,8 +35,8 @@ class EntityExtractor:
 
     def extract_color(self, title, specs=None):
         specs = specs or {}
-        spec_color = specs.get('color', '').lower().strip()
-        if spec_color and spec_color not in ['n/a', 'none', 'unknown']:
+        spec_color = str(specs.get('color') or '').lower().strip()
+        if spec_color and spec_color not in ['n/a', 'none', 'unknown', 'default', 'unspecified']:
             for col in COLOR_DICTIONARY:
                 if col in spec_color:
                     return col

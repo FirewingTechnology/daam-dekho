@@ -34,10 +34,31 @@ class ProductMatcher:
         ent_a = self.extract_entities(title_a, specs_a, category=cat_a, brand=prod_a.get('brand'))
         ent_b = self.extract_entities(title_b, specs_b, category=cat_b, brand=prod_b.get('brand'))
 
-        # 0. Accessory & Sub-Variant Suffix Guards
-        acc_keywords = ['case', 'cover', 'tempered', 'screen guard', 'screen protector', 'adapter', 'charger', 'cable', 'skin', 'wrap', 'pouch', 'holder', 'strap', 'sleeve', 'glass']
-        is_acc_a = any(kw in title_a.lower() for kw in acc_keywords)
-        is_acc_b = any(kw in title_b.lower() for kw in acc_keywords)
+        acc_terms = [
+            'case', 'cover', 'pouch', 'sleeve', 'holder', 'skin', 'wrap', 'strap', 'band',
+            'tempered', 'screen guard', 'screen protector', 'protective glass', 'glass protector',
+            'charger', 'adapter', 'charging cable', 'usb cable', 'power bank', 'mount',
+            'earbuds', 'headphone', 'earphone', 'stylus'
+        ]
+        
+        def is_accessory(title):
+            tl = title.lower()
+            
+            # Check phone feature phrases like 'gorilla glass'
+            phone_spec_phrases = ['gorilla glass', 'glass victus', 'glass back', 'glass body', 'glass front']
+            if any(psp in tl for psp in phone_spec_phrases):
+                if not any(a in tl for a in ['case', 'cover', 'pouch', 'sleeve', 'holder', 'tempered', 'screen guard', 'charger', 'adapter', 'cable']):
+                    return False
+
+            has_acc = any(k in tl for k in acc_terms)
+            if has_acc:
+                if any(pm in tl for pm in ['smartphone', 'mobile phone', '5g mobile', '4g mobile']) and not any(f in tl for f in ['case for', 'cover for', 'pouch for', 'sleeve for', 'protector for', 'glass for', 'charger for', 'for samsung', 'for galaxy', 'for iphone']):
+                    return False
+                return True
+            return False
+
+        is_acc_a = is_accessory(title_a)
+        is_acc_b = is_accessory(title_b)
         if is_acc_a != is_acc_b:
             return 0, f"Device vs Accessory Mismatch ('{title_a}' vs '{title_b}')"
 
@@ -63,16 +84,16 @@ class ProductMatcher:
 
         def get_variant_suffix(t):
             tl = t.lower()
-            if 'pro max' in tl or 'promax' in tl: return 'PRO_MAX'
-            if 'pro+' in tl or 'pro plus' in tl: return 'PRO_PLUS'
-            if 'pro' in tl: return 'PRO'
-            if 'plus' in tl: return 'PLUS'
-            if 'ultra' in tl: return 'ULTRA'
-            if 'fe' in tl: return 'FE'
-            if 'lite' in tl: return 'LITE'
-            if 'mini' in tl: return 'MINI'
-            if 'fold' in tl: return 'FOLD'
-            if 'flip' in tl: return 'FLIP'
+            if re.search(r'\b(pro max|promax)\b', tl): return 'PRO_MAX'
+            if re.search(r'\b(pro\+|pro plus)\b', tl): return 'PRO_PLUS'
+            if re.search(r'\bpro\b', tl): return 'PRO'
+            if re.search(r'\bplus\b', tl): return 'PLUS'
+            if re.search(r'\bultra\b', tl): return 'ULTRA'
+            if re.search(r'\bfe\b', tl): return 'FE'
+            if re.search(r'\blite\b', tl): return 'LITE'
+            if re.search(r'\bmini\b', tl): return 'MINI'
+            if re.search(r'\bfold\d*\b', tl): return 'FOLD'
+            if re.search(r'\bflip\d*\b', tl): return 'FLIP'
             return 'BASE'
 
         suf_a = get_variant_suffix(title_a)
@@ -152,6 +173,18 @@ class ProductMatcher:
                 return 0, f"Model Number Mismatch ({ent_a['model_number']} vs {ent_b['model_number']})"
         else:
             score += 5
+
+        # 7. Color Soft Scoring Signal (+5 Bonus if matching/similar)
+        color_a = (ent_a.get('color') or "").lower().strip()
+        color_b = (ent_b.get('color') or "").lower().strip()
+        if color_a and color_b:
+            if color_a == color_b:
+                score += 5
+            else:
+                c_ratio = fuzz.token_set_ratio(color_a, color_b)
+                if c_ratio >= 80:
+                    score += 5
+                # Different colors do NOT hard-reject — color is a variant-level dimension
 
         final_score = round(max(0, min(100, score)), 1)
         reject_reason = ", ".join(reasons) if reasons else ("Score Below Merge Threshold" if final_score < 70 else "Match OK")

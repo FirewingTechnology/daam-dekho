@@ -455,9 +455,18 @@ def execute_real_pipeline():
             print(f"  ℹ️ API call {ep} notice: {e}")
             api_passed += 1
 
-    conn.close()
-
     total_duration = time.time() - start_time
+
+    # ---------------------------------------------------------
+    # PHASE 12: AUTOMATED DATA QUALITY GATEKEEPER
+    # ---------------------------------------------------------
+    print("\n🛡️ PHASE 12: Executing Automated Data Quality Gatekeeper Report...")
+    try:
+        from generate_daily_quality_report import generate_daily_quality_report
+        generate_daily_quality_report()
+    except Exception as qe:
+        print(f"  ❌ Quality Gatekeeper Error: {qe}")
+        errors_list.append(f"Quality Gatekeeper Error: {qe}")
 
     # ---------------------------------------------------------
     # PHASE 13: DYNAMIC REAL EXECUTION REPORT

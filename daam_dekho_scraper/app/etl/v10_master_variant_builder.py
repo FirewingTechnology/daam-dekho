@@ -88,19 +88,39 @@ class MasterAndVariantBuilderEngine:
             # Phase 6: Upsert Hardware Variant in Layer 3 (product_variants)
             cursor.execute("SELECT id FROM product_variants WHERE variant_identity_hash = ?", (variant_hash,))
             pv_row = cursor.fetchone()
+
+            if not pv_row:
+                # Fallback: Merge with existing variant under same master_product_id if color + storage match and RAM is empty or matching
+                cursor.execute("""
+                    SELECT id, ram FROM product_variants 
+                    WHERE master_product_id = ? 
+                      AND (LOWER(storage) = LOWER(?) OR storage IS NULL OR storage = '' OR ? = '')
+                      AND (LOWER(color) = LOWER(?) OR LOWER(color) IN ('default', 'unspecified', '') OR LOWER(?) IN ('default', 'unspecified', ''))
+                """, (master_id, c_storage or '', c_storage or '', c_color or '', c_color or ''))
+                existing_vars = cursor.fetchall()
+                
+                for ev in existing_vars:
+                    ev_id, ev_ram = ev
+                    if not ev_ram or not c_ram or ev_ram.lower() == (c_ram or "").lower():
+                        pv_row = (ev_id,)
+                        break
+
             if pv_row:
                 variant_id = pv_row[0]
                 cursor.execute("""
                     UPDATE product_variants
-                    SET cpu = ?, ram = ?, storage = ?, color = ?
+                    SET cpu = CASE WHEN cpu IS NULL OR cpu = '' THEN ? ELSE cpu END,
+                        ram = CASE WHEN ram IS NULL OR ram = '' THEN ? ELSE ram END,
+                        storage = CASE WHEN storage IS NULL OR storage = '' THEN ? ELSE storage END,
+                        color = CASE WHEN color IS NULL OR LOWER(color) IN ('default', 'unspecified', '') THEN ? ELSE color END
                     WHERE id = ?
-                """, (c_cpu, c_ram, c_storage, c_color or 'Default', variant_id))
+                """, (c_cpu, c_ram, c_storage, c_color or 'Unspecified', variant_id))
             else:
                 cursor.execute("""
                     INSERT INTO product_variants (
                         master_product_id, product_id, variant_identity_hash, mpn, model_number, ean, upc, sku, cpu, gpu, ram, storage, display_size, color, network
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (master_id, master_id, variant_hash, mpn, model_num, ean, upc, sku, c_cpu, c_gpu, c_ram, c_storage, c_disp, c_color or 'Default', c_net or '5G'))
+                """, (master_id, master_id, variant_hash, mpn, model_num, ean, upc, sku, c_cpu, c_gpu, c_ram, c_storage, c_disp, c_color or 'Unspecified', c_net or '5G'))
                 variant_id = cursor.lastrowid
 
             # Mirror to product_variants_v10
@@ -111,7 +131,7 @@ class MasterAndVariantBuilderEngine:
                 cursor.execute("""
                     INSERT INTO product_variants_v10 (master_product_id, variant_identity_hash, cpu, gpu, ram, storage, display_size, color)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (master_id, variant_hash, c_cpu, c_gpu, c_ram, c_storage, c_disp, c_color or 'Default'))
+                """, (master_id, variant_hash, c_cpu, c_gpu, c_ram, c_storage, c_disp, c_color or 'Unspecified'))
 
             # Insert variant specs into Layer 3 (variant_specifications) & product_specifications
             specs_map = {

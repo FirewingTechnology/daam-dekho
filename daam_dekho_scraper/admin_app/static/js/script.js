@@ -151,6 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 pill.classList.remove('running');
                 text.innerText = 'Scraper Idle';
             }
+
+            // Fetch Quality Gatekeeper Report
+            try {
+                const qRes = await fetch('/api/quality-report');
+                const qData = await qRes.json();
+                if (qData.report && qData.report.metrics) {
+                    const m = qData.report.metrics;
+                    if (document.getElementById('dash-unspecified-color')) document.getElementById('dash-unspecified-color').innerText = `${m.unspecified_color_pct}%`;
+                    if (document.getElementById('dash-multi-vendor-cov')) document.getElementById('dash-multi-vendor-cov').innerText = `${m.multi_vendor_coverage_pct}%`;
+                    if (document.getElementById('dash-dup-variants')) document.getElementById('dash-dup-variants').innerText = m.duplicate_variants_count;
+                    if (document.getElementById('dash-title-noise')) document.getElementById('dash-title-noise').innerText = m.marketing_noise_titles_count;
+                    if (document.getElementById('dash-invalid-prices')) document.getElementById('dash-invalid-prices').innerText = m.invalid_price_count;
+                    if (document.getElementById('dash-avg-vendors')) document.getElementById('dash-avg-vendors').innerText = m.avg_vendors_per_product;
+                }
+            } catch (e) {
+                console.error('Failed to load quality report metrics:', e);
+            }
         } catch (err) {
             console.error('Failed to load dashboard metrics:', err);
         }
