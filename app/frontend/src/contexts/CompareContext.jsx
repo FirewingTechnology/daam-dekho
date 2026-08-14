@@ -34,15 +34,18 @@ export const CompareProvider = ({ children }) => {
         toast.warning("Maximum 4 products allowed for comparison! Remove a product to add another.");
         return;
       }
-      
+
       let fullProduct = { ...product, _id: masterId, id: masterId };
-      
+
       if (!product.vendors || Array.isArray(product.vendors) || !product.specifications) {
         try {
           const slug = product.slug || product.id || masterId;
           if (slug) {
             const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL;
-            const baseUrl = envUrl || (import.meta.env.DEV ? 'http://localhost:8001/api' : 'https://api.daamdekho.com/api');
+            let baseUrl = envUrl || (import.meta.env.DEV ? 'http://localhost:8001/api' : 'https://dev-daam-dekho.onrender.com/api');
+            if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+              baseUrl = `https://${baseUrl}`;
+            }
             const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/api`;
             const res = await fetch(`${cleanBaseUrl}/products/${slug}`);
             if (res.ok) {

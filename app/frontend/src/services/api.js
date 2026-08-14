@@ -5,7 +5,7 @@ if (!rawUrl) {
   if (import.meta.env.DEV) {
     rawUrl = 'http://localhost:8001/api';
   } else {
-    rawUrl = 'https://api.daamdekho.com/api';
+    rawUrl = 'https://dev-daam-dekho.onrender.com/api';
   }
 }
 if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
