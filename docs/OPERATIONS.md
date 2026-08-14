@@ -21,7 +21,7 @@ DATABASE_PATH=../../daamdekho.db
 ### Frontend React Environment (`app/frontend/.env.production`)
 
 ```env
-VITE_URL=https://api.daamdekho.com/api
+VITE_URL=https://dev-daam-dekho.onrender.com/api
 ```
 
 ---
@@ -69,7 +69,7 @@ server {
 
 ## 3️⃣ Health Checks & System Monitoring
 
-- **API Health Check Endpoint**: `GET https://api.daamdekho.com/health`
+- **API Health Check Endpoint**: `GET https://dev-daam-dekho.onrender.com/health`
   - Expected Response: `{"status": "healthy", "timestamp": "2026-07-24T16:45:00.000Z"}`
 - **Automated Uptime Probe**: UptimeRobot configured for 5-minute interval HTTP checks on `/health`.
 
