@@ -138,12 +138,13 @@ const SpecRow = React.memo(({ label, keys, products, highlightDiff, highlightBes
   );
 });
 
-const ModernCompareView = ({ products: initialProducts, onRemove }) => {
+const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => {
   const navigate = useNavigate();
   const { compareList, removeFromCompare, clearCompare } = useCompare();
 
   const products = useMemo(() => {
-    const rawList = initialProducts && initialProducts.length > 0 ? initialProducts : compareList;
+    const rawList = initialProducts !== undefined ? initialProducts : compareList;
+    if (!rawList || rawList.length === 0) return [];
     const seenMasterIds = new Set();
     const uniqueList = [];
     for (const p of rawList) {
@@ -274,7 +275,10 @@ const ModernCompareView = ({ products: initialProducts, onRemove }) => {
             </button>
 
             <button
-              onClick={clearCompare}
+              onClick={() => {
+                clearCompare();
+                if (onClear) onClear();
+              }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-all"
             >
               <FiTrash2 /> Clear All

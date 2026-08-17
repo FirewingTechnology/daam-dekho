@@ -18,7 +18,7 @@ const API_BASE_URL = rawUrl;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 45000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -45,26 +45,37 @@ api.interceptors.response.use(
       console.warn('Resource not found:', error.config?.url);
     } else if (error.response?.status >= 500) {
       console.error('Server error:', error.config?.url);
-    } else if (error.code === 'ECONNABORTED') {
-      console.error('Request timeout');
+    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.warn('Request timeout during server warm-up:', error.config?.url);
     } else if (!error.response) {
-      console.error('Network error - check your connection');
+      console.warn('Network connection drop during server warm-up');
     }
     return Promise.reject(error);
   }
 );
 
-// Retry wrapper with exponential backoff
-const retryRequest = async (requestFn, maxRetries = 2) => {
+// Retry wrapper with exponential backoff for cold starts
+const retryRequest = async (requestFn, maxRetries = 3) => {
   let lastError;
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await requestFn();
     } catch (error) {
       lastError = error;
-      if (i < maxRetries - 1) {
-        const delayMs = Math.pow(2, i) * 1000;
+      const isNetworkOrColdStart = 
+        !error.response || 
+        error.code === 'ECONNABORTED' || 
+        error.code === 'ERR_NETWORK' ||
+        [502, 503, 504].includes(error.response?.status);
+
+      if (i < maxRetries - 1 && isNetworkOrColdStart) {
+        const delayMs = (i + 1) * 1500;
+        console.warn(`[Cold Start Handler] Retrying request (${i + 1}/${maxRetries}) after ${delayMs}ms...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
+      } else if (i < maxRetries - 1 && !error.response) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        break;
       }
     }
   }

@@ -152,7 +152,7 @@ const Info = ({ product = {} }) => {
     return collected;
   };
 
-  const { vendorName, originalPrice, discountPrice, rating, vendorLink } = getPriceData();
+  const { vendorName, originalPrice, discountPrice, _rating, vendorLink } = getPriceData();
   const { title = "" } = product;
   const images = getAllProductImages(product);
 

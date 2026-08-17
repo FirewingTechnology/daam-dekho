@@ -10,7 +10,7 @@ const Layout = () => {
     <div>
       <ScrollToTop />
       <Header />
-      <main className=" bg-gray-50 ">
+      <main className="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
         <Outlet />
       </main>
       <Footer />

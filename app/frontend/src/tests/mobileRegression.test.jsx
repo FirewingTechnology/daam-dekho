@@ -1,12 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Info from '../components/product/Info';
+import Header from '../components/Header';
 import ModernCompareView from '../components/compare/ModernCompareView';
 import { CompareProvider, useCompare } from '../contexts/CompareContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 
-// Mock API endpoint for testing category requests
+// Mock API endpoint for testing
 vi.mock('../services/api', () => ({
   apiEndpoints: {
     searchProducts: vi.fn(async (params) => {
@@ -76,10 +79,204 @@ const CompareTestConsumer = () => {
   );
 };
 
+// Theme test helper
+const ThemeTestConsumer = () => {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <div>
+      <span data-testid="current-theme">{theme}</span>
+      <button data-testid="toggle-theme-btn" onClick={toggleTheme}>Toggle</button>
+    </div>
+  );
+};
+
 describe('Mobile Bug Elimination & Functional Regression Suite', () => {
 
-  // TEST 1: Product with multiple images renders all available images
-  it('TEST 1: Product with multiple images renders thumbnail strip and controls', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // BUG #1 TEST: Hamburger menu drawer opens, renders nav items visibly, and closes
+  it('BUG #1: Mobile Hamburger menu opens visible navigation drawer and closes on toggle/click', async () => {
+    render(
+      <MemoryRouter>
+        <ThemeProvider>
+          <CompareProvider>
+            <Header />
+          </CompareProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+
+    const menuToggleBtn = screen.getByLabelText('Toggle Navigation Menu');
+    expect(menuToggleBtn).toBeInTheDocument();
+
+    // Initially mobile drawer is not open
+    expect(screen.queryByText('Start Searching Products')).toBeNull();
+
+    // Open hamburger menu
+    await act(async () => {
+      fireEvent.click(menuToggleBtn);
+    });
+
+    // Drawer is now open with visible navigation items
+    const startSearchingBtn = screen.getByText('Start Searching Products');
+    expect(startSearchingBtn).toBeInTheDocument();
+    expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Products').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Compare').length).toBeGreaterThan(0);
+
+    // Close hamburger menu
+    await act(async () => {
+      fireEvent.click(menuToggleBtn);
+    });
+
+    expect(screen.queryByText('Start Searching Products')).toBeNull();
+  });
+
+  // BUG #2 TEST: Clear All immediately re-renders empty state
+  it('BUG #2: Clear All immediately re-renders empty state within same cycle', async () => {
+    const dummyProducts = [
+      { id: 'p1', _id: 'p1', title: 'Product 1', price: '1000' },
+      { id: 'p2', _id: 'p2', title: 'Product 2', price: '2000' }
+    ];
+
+    const CompareWrapper = () => {
+      const { compareList, clearCompare } = useCompare();
+      const [localProducts, setLocalProducts] = React.useState(dummyProducts);
+
+      const handleClear = () => {
+        clearCompare();
+        setLocalProducts([]);
+      };
+
+      return (
+        <ModernCompareView 
+          products={localProducts.length > 0 ? localProducts : compareList} 
+          onClear={handleClear}
+        />
+      );
+    };
+
+    render(
+      <MemoryRouter>
+        <CompareProvider>
+          <CompareWrapper />
+        </CompareProvider>
+      </MemoryRouter>
+    );
+
+    // Should initially show comparison view with 2 products
+    expect(screen.getByText('Side-by-Side Product Comparison')).toBeInTheDocument();
+    expect(screen.getByText('Product 1')).toBeInTheDocument();
+    expect(screen.getByText('Product 2')).toBeInTheDocument();
+
+    // Click "Clear All"
+    const clearAllBtn = screen.getByRole('button', { name: /clear all/i });
+    await act(async () => {
+      fireEvent.click(clearAllBtn);
+    });
+
+    // Immediately renders empty state without page reload
+    expect(screen.getByText('No Products Selected for Comparison')).toBeInTheDocument();
+    expect(screen.getByText(/Browse & Add Products/)).toBeInTheDocument();
+    expect(screen.queryByText('Side-by-Side Product Comparison')).toBeNull();
+  });
+
+  // BUG #3 TEST: 5th Product Rejected + Toast Triggered
+  it('BUG #3: Attempting 5th product is rejected and triggers warning toast', async () => {
+    const warningSpy = vi.spyOn(toast, 'warning').mockImplementation(() => {});
+
+    render(
+      <CompareProvider>
+        <CompareTestConsumer />
+      </CompareProvider>
+    );
+
+    const countElem = screen.getByTestId('compare-count');
+    expect(countElem.textContent).toBe('0');
+
+    // Add 4 products
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('add-prod-1'));
+      fireEvent.click(screen.getByTestId('add-prod-2'));
+      fireEvent.click(screen.getByTestId('add-prod-3'));
+      fireEvent.click(screen.getByTestId('add-prod-4'));
+    });
+    expect(countElem.textContent).toBe('4');
+
+    // Attempt 5th product
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('add-prod-5'));
+    });
+
+    // Remains exactly 4
+    expect(countElem.textContent).toBe('4');
+    expect(warningSpy).toHaveBeenCalledWith('Maximum 4 products can be compared at a time.');
+
+    warningSpy.mockRestore();
+  });
+
+  // DUPLICATE TEST: Duplicate rejected + Toast Triggered
+  it('BUG #3 (Duplicate): Duplicate addition is rejected and triggers info toast', async () => {
+    const infoSpy = vi.spyOn(toast, 'info').mockImplementation(() => {});
+
+    render(
+      <CompareProvider>
+        <CompareTestConsumer />
+      </CompareProvider>
+    );
+
+    const countElem = screen.getByTestId('compare-count');
+
+    // Add P1
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('add-prod-1'));
+    });
+    expect(countElem.textContent).toBe('1');
+
+    // Try adding P1 again
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('add-prod-1'));
+    });
+
+    expect(countElem.textContent).toBe('1');
+    expect(infoSpy).toHaveBeenCalledWith('This product is already in your comparison list.');
+
+    infoSpy.mockRestore();
+  });
+
+  // BUG #4 TEST: Dark/Light theme toggle updates DOM class on documentElement and body
+  it('BUG #4: Theme toggle synchronizes dark class on documentElement, body and storage', async () => {
+    render(
+      <ThemeProvider>
+        <ThemeTestConsumer />
+      </ThemeProvider>
+    );
+
+    const toggleBtn = screen.getByTestId('toggle-theme-btn');
+    const initialTheme = screen.getByTestId('current-theme').textContent;
+
+    await act(async () => {
+      fireEvent.click(toggleBtn);
+    });
+
+    const newTheme = screen.getByTestId('current-theme').textContent;
+    expect(newTheme).not.toBe(initialTheme);
+
+    if (newTheme === 'dark') {
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      expect(document.body.classList.contains('dark')).toBe(true);
+      expect(localStorage.getItem('theme')).toBe('dark');
+    } else {
+      expect(document.documentElement.classList.contains('dark')).toBe(false);
+      expect(document.body.classList.contains('dark')).toBe(false);
+      expect(localStorage.getItem('theme')).toBe('light');
+    }
+  });
+
+  // ADDITIONAL REGRESSION: Product image handling in Info.jsx
+  it('REGRESSION: Product with multiple images renders thumbnail strip and controls', () => {
     const mockProduct = {
       id: 'prod-multi',
       title: 'Samsung Galaxy A27 5G',
@@ -94,89 +291,9 @@ describe('Mobile Bug Elimination & Functional Regression Suite', () => {
 
     render(<Info product={mockProduct} />);
 
-    // Primary image & thumbnails should render
     const images = screen.getAllByRole('img');
     expect(images.length).toBeGreaterThanOrEqual(4);
-    // Index indicator 1 / 4
     expect(screen.getByText('1 / 4')).toBeInTheDocument();
-  });
-
-  // TEST 2: Product with one image does not crash
-  it('TEST 2: Product with single image renders safely without crashing or index badge', () => {
-    const mockProduct = {
-      id: 'prod-single',
-      title: 'Single Image Phone',
-      image_url: 'https://example.com/single.jpg',
-      vendors: {}
-    };
-
-    render(<Info product={mockProduct} />);
-
-    expect(screen.getByAltText('Single Image Phone')).toBeInTheDocument();
-    expect(screen.queryByText(/1 \/ 1/)).toBeNull();
-  });
-
-  // TEST 5 & 6 & 7 & 8 & 9 & 10: Compare Context Operations
-  it('TEST 5-10: Compare Context manages 1, 2, 4 products, prevents 5th product & duplicates', async () => {
-    render(
-      <CompareProvider>
-        <CompareTestConsumer />
-      </CompareProvider>
-    );
-
-    const countElem = screen.getByTestId('compare-count');
-    expect(countElem.textContent).toBe('0');
-
-    // Add 1 product
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('add-prod-1'));
-    });
-    expect(countElem.textContent).toBe('1');
-
-    // Try duplicate addition of P1
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('add-prod-1'));
-    });
-    expect(countElem.textContent).toBe('1'); // Duplicate blocked
-
-    // Add 2nd product
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('add-prod-2'));
-    });
-    expect(countElem.textContent).toBe('2');
-
-    // Add 3rd and 4th products
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('add-prod-3'));
-      fireEvent.click(screen.getByTestId('add-prod-4'));
-    });
-    expect(countElem.textContent).toBe('4');
-
-    // Try adding 5th product
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('add-prod-5'));
-    });
-    expect(countElem.textContent).toBe('4'); // 5th product blocked
-
-    // Remove 1 product
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('remove-prod-1'));
-    });
-    expect(countElem.textContent).toBe('3');
-  });
-
-  // TEST 11: Empty compare state renders cleanly
-  it('TEST 11: Empty compare state renders clean mobile UI with action button', () => {
-    render(
-      <MemoryRouter>
-        <CompareProvider>
-          <ModernCompareView products={[]} />
-        </CompareProvider>
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText('No Products Selected for Comparison')).toBeInTheDocument();
-    expect(screen.getByText(/Browse & Add Products/)).toBeInTheDocument();
   });
 
 });

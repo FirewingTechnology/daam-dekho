@@ -1,14 +1,12 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useRef } from "react";
 import { toast } from "react-toastify";
 
 const CompareContext = createContext();
 
-// Track which products are currently being added to prevent race conditions
-const addingProductIds = new Set();
-
 export const CompareProvider = ({ children }) => {
   // In-memory only - no localStorage persistence
   const [compareList, setCompareList] = useState([]);
+  const addingProductIdsRef = useRef(new Set());
 
   const getMasterId = (product) => {
     if (!product) return "";
@@ -21,8 +19,8 @@ export const CompareProvider = ({ children }) => {
     const masterId = getMasterId(product);
     if (!masterId) return;
 
-    if (addingProductIds.has(masterId)) return;
-    addingProductIds.add(masterId);
+    if (addingProductIdsRef.current.has(masterId)) return;
+    addingProductIdsRef.current.add(masterId);
 
     try {
       if (compareList.some((p) => getMasterId(p) === masterId)) {
@@ -31,7 +29,7 @@ export const CompareProvider = ({ children }) => {
       }
 
       if (compareList.length >= 4) {
-        toast.warning("Maximum 4 products allowed for comparison! Remove a product to add another.");
+        toast.warning("Maximum 4 products can be compared at a time.");
         return;
       }
 
@@ -79,9 +77,7 @@ export const CompareProvider = ({ children }) => {
         return [...currentList, fullProduct];
       });
     } finally {
-      setTimeout(() => {
-        addingProductIds.delete(masterId);
-      }, 300);
+      addingProductIdsRef.current?.delete(masterId);
     }
   };
 

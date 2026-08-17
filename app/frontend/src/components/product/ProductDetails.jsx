@@ -7,6 +7,7 @@ import { ClipLoader } from "react-spinners";
 import Info from "./Info";
 import Prices from "./Prices";
 import Specs from "./Specs";
+import PriceAlertModal from "./PriceAlertModal";
 
 const formatPrice = (p) => (p ? `₹${Number(p).toLocaleString("en-IN")}` : "");
 
@@ -37,6 +38,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
 
   // Validate that product data is legitimate (not an error response)
   const isValidProduct = (data) => {
@@ -119,25 +121,35 @@ const ProductDetails = () => {
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
           {/* 1. TOP SECTION - Heading & Rating */}
           <div className="mb-6 sm:mb-8 animate-fadeIn">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
-                {product.title || product.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
-                {product.rating > 0 && (
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-xs border border-gray-100">
-                    <div className="flex items-center text-yellow-500">
-                      {renderStars(product.rating)}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+                  {product.title || product.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
+                  {product.rating > 0 && (
+                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-xs border border-gray-100">
+                      <div className="flex items-center text-yellow-500">
+                        {renderStars(product.rating)}
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-gray-700">
+                        {product.rating.toFixed(1)} / 5
+                      </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-gray-700">
-                      {product.rating.toFixed(1)} / 5
-                    </span>
+                  )}
+                  <div className="text-xs sm:text-sm font-bold text-blue-600 hover:underline cursor-pointer bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                    {product.brand || "Official Store"}
                   </div>
-                )}
-                <div className="text-xs sm:text-sm font-bold text-blue-600 hover:underline cursor-pointer bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                  {product.brand || "Official Store"}
                 </div>
               </div>
+
+              {/* Price Drop Alert Trigger Button */}
+              <button
+                onClick={() => setIsAlertModalOpen(true)}
+                className="self-start sm:self-center px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-xl text-xs sm:text-sm transition-all shadow-md active:scale-95 flex items-center gap-2"
+              >
+                🔔 Set Price Drop Alert
+              </button>
             </div>
           </div>
 
@@ -220,6 +232,16 @@ const ProductDetails = () => {
             View Deals
           </button>
         </div>
+      )}
+      {/* Price Alert Modal */}
+      {product && (
+        <PriceAlertModal
+          isOpen={isAlertModalOpen}
+          onClose={() => setIsAlertModalOpen(false)}
+          productTitle={product.title || product.name}
+          currentPrice={lowestPrice}
+          productId={product.id || product._id || id}
+        />
       )}
     </div>
   );

@@ -8,7 +8,7 @@ import { useCompare } from "../../contexts/CompareContext";
 
 const TABS = ["Mobile", "Laptop", "Mobile Accessories", "Laptop Accessories"];
 
-const schema = z
+const COMPARE_SCHEMA = z
   .array(
     z
       .object({
