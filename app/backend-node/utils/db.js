@@ -61,3 +61,16 @@ export const run = (sql, params = []) => {
     });
   });
 };
+
+export const closeDB = () => {
+  return new Promise((resolve, reject) => {
+    if (!db) return resolve();
+    db.close((err) => {
+      if (err) reject(err);
+      else {
+        db = null;
+        resolve();
+      }
+    });
+  });
+};

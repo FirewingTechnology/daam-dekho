@@ -296,4 +296,92 @@ describe('Mobile Bug Elimination & Functional Regression Suite', () => {
     expect(screen.getByText('1 / 4')).toBeInTheDocument();
   });
 
+  // TEST 1 & 3: Compare page renders with controlled horizontal scroll container
+  it('TEST: Compare page matrix renders with isolated horizontal scroll container and touch support', () => {
+    const dummyProducts = [
+      { id: 'p1', _id: 'p1', title: 'Product 1', price: '1000', specifications: { RAM: '8GB' } },
+      { id: 'p2', _id: 'p2', title: 'Product 2', price: '2000', specifications: { RAM: '16GB' } },
+      { id: 'p3', _id: 'p3', title: 'Product 3', price: '3000', specifications: { RAM: '12GB' } },
+      { id: 'p4', _id: 'p4', title: 'Product 4', price: '4000', specifications: { RAM: '16GB' } },
+    ];
+
+    const { container } = render(
+      <MemoryRouter>
+        <CompareProvider>
+          <ModernCompareView products={dummyProducts} />
+        </CompareProvider>
+      </MemoryRouter>
+    );
+
+    // Verify matrix container has overflow-x-auto, overscroll-x-contain, and touch-pan-x
+    const scrollContainer = container.querySelector('.overflow-x-auto.custom-scrollbar');
+    expect(scrollContainer).toBeInTheDocument();
+    expect(scrollContainer.className).toContain('overflow-x-auto');
+    expect(scrollContainer.className).toContain('overscroll-x-contain');
+    expect(scrollContainer.className).toContain('touch-pan-x');
+
+    // Verify all 4 products are rendered
+    expect(screen.getByText('Product 1')).toBeInTheDocument();
+    expect(screen.getByText('Product 2')).toBeInTheDocument();
+    expect(screen.getByText('Product 3')).toBeInTheDocument();
+    expect(screen.getByText('Product 4')).toBeInTheDocument();
+  });
+
+  // TEST 8: Product images in comparison cards use constrained object-contain box
+  it('TEST: Comparison product images use constrained container with object-contain', () => {
+    const dummyProducts = [
+      { 
+        id: 'p1', 
+        _id: 'p1', 
+        title: 'Product 1', 
+        base_image: 'https://example.com/p1.jpg',
+        price: '1000' 
+      },
+      { 
+        id: 'p2', 
+        _id: 'p2', 
+        title: 'Product 2', 
+        base_image: 'https://example.com/p2.jpg',
+        price: '2000' 
+      }
+    ];
+
+    const { container } = render(
+      <MemoryRouter>
+        <CompareProvider>
+          <ModernCompareView products={dummyProducts} />
+        </CompareProvider>
+      </MemoryRouter>
+    );
+
+    const images = container.querySelectorAll('thead img');
+    expect(images.length).toBe(2);
+    images.forEach(img => {
+      expect(img.className).toContain('object-contain');
+      expect(img.parentElement.className).toContain('overflow-hidden');
+    });
+  });
+
+  // TEST 9: Floating bottom toolbar has responsive constraints and does not cause overflow
+  it('TEST: Floating bottom toolbar has responsive constraints and 44px touch targets', () => {
+    const dummyProducts = [
+      { id: 'p1', _id: 'p1', title: 'Product 1', price: '1000' },
+      { id: 'p2', _id: 'p2', title: 'Product 2', price: '2000' }
+    ];
+
+    const { container } = render(
+      <MemoryRouter>
+        <CompareProvider>
+          <ModernCompareView products={dummyProducts} />
+        </CompareProvider>
+      </MemoryRouter>
+    );
+
+    const toolbar = container.querySelector('.fixed.bottom-3, .fixed.bottom-4');
+    expect(toolbar).toBeInTheDocument();
+    expect(toolbar.className).toContain('max-w-lg');
+    expect(toolbar.className).toContain('backdrop-blur-xl');
+    expect(screen.getByText(/2 Compared/)).toBeInTheDocument();
+  });
+
 });

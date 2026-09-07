@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { apiService } from "../services/api";
 
 const CompareContext = createContext();
 
@@ -39,28 +40,21 @@ export const CompareProvider = ({ children }) => {
         try {
           const slug = product.slug || product.id || masterId;
           if (slug) {
-            const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL;
-            let baseUrl = envUrl || (import.meta.env.DEV ? 'http://localhost:8001/api' : 'https://dev-daam-dekho.onrender.com/api');
-            if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-              baseUrl = `https://${baseUrl}`;
-            }
-            const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/api`;
-            const res = await fetch(`${cleanBaseUrl}/products/${slug}`);
-            if (res.ok) {
-              const data = await res.json();
-              const productData = Array.isArray(data) ? data[0] : data;
-              if (productData) {
-                fullProduct = {
-                  ...fullProduct,
-                  ...productData,
-                  _id: masterId,
-                  id: masterId,
-                };
-              }
+            const res = await apiService.getProductById(slug);
+            const raw = res?.data;
+            const productData = raw?.product || (Array.isArray(raw) ? raw[0] : raw);
+            if (productData) {
+              fullProduct = {
+                ...fullProduct,
+                ...productData,
+                vendors: productData.vendors || raw?.vendors || fullProduct.vendors,
+                _id: masterId,
+                id: masterId,
+              };
             }
           }
         } catch (error) {
-          console.error("Error fetching full product details for compare:", error);
+          console.warn("Error fetching full product details for compare:", error);
         }
       }
 

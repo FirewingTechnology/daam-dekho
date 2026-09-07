@@ -1,10 +1,13 @@
 import request from 'supertest';
 import app from '../app.js';
-import { connectDB } from '../utils/db.js';
+import { connectDB, closeDB } from '../utils/db.js';
 
 describe('API Smoke Tests', () => {
   beforeAll(async () => {
     await connectDB();
+  });
+  afterAll(async () => {
+    await closeDB();
   });
   test('GET /health should return 200 and healthy status', async () => {
     const res = await request(app).get('/health');

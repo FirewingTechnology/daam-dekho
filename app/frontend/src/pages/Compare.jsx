@@ -16,6 +16,8 @@ export const Compare = () => {
   const [loading, setLoading] = useState(false);
   const [hiddenIds, setHiddenIds] = useState([]);
 
+  const comparisons = location.state || compareList;
+
   const hiddenIdsRef = useRef(hiddenIds);
   useEffect(() => { hiddenIdsRef.current = hiddenIds; }, [hiddenIds]);
 
@@ -52,9 +54,17 @@ export const Compare = () => {
       );
 
       const fetchedProducts = responses
-        .map((res) =>
-          res.status === "fulfilled" && res.value?.data ? res.value.data : null
-        )
+        .map((res) => {
+          if (res.status !== "fulfilled" || !res.value?.data) return null;
+          const data = res.value.data;
+          const prod = data.product || (Array.isArray(data) ? data[0] : data);
+          if (!prod) return null;
+          return {
+            ...prod,
+            _id: prod._id || prod.id,
+            vendors: prod.vendors || data.vendors || {}
+          };
+        })
         .filter(Boolean)
         .map((p) => ({ ...p, _id: p._id || p.id }));
 
@@ -73,20 +83,24 @@ export const Compare = () => {
         }
       }
 
-      setProducts(validProducts);
-
-      if (validProducts.length === 0 && uniqueIds.length > 0) {
-        toast.error("No products with pricing data found for comparison");
+      if (validProducts.length > 0) {
+        setProducts(validProducts);
+      } else if (comparisons && comparisons.length > 0) {
+        setProducts(comparisons.filter(Boolean).map((p) => ({ ...p, _id: p._id || p.id })));
+      } else {
+        setProducts([]);
       }
     } catch (err) {
       console.error("Error fetching products:", err);
-      toast.error("Failed to load products for comparison");
+      if (comparisons && comparisons.length > 0) {
+        setProducts(comparisons.filter(Boolean).map((p) => ({ ...p, _id: p._id || p.id })));
+      } else {
+        toast.error("Failed to load products for comparison");
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const comparisons = location.state || compareList;
+  }, [comparisons]);
 
   useEffect(() => {
     if (comparisons && comparisons.length > 0) {
@@ -104,61 +118,24 @@ export const Compare = () => {
     }
   }, [comparisons, fetchProducts]);
 
-  const visibleProducts = products.filter(
+  const activeProducts = products.length > 0 
+    ? products 
+    : (Array.isArray(comparisons) ? comparisons : []);
+
+  const visibleProducts = activeProducts.filter(
     (p) => p && !hiddenIds.includes(p._id || p.id)
   );
 
-  const hasNoComparisons = 
-    (!comparisons || (Array.isArray(comparisons) && comparisons.filter(Boolean).length === 0)) && 
-    visibleProducts.length === 0;
-
-  if (hasNoComparisons && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[75vh] px-4 py-16 text-center bg-slate-900 font-['Inter',_sans-serif]">
-        <div className="max-w-md w-full p-8 rounded-3xl bg-slate-800/80 backdrop-blur-md border border-slate-700/60 shadow-2xl space-y-6 animate-fadeIn">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-3xl shadow-inner">
-            ⚖️
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              No Products Selected
-            </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Compare prices, specs, and vendor deals side-by-side by selecting products from our catalog.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-2">
-            <button
-              onClick={() => navigate("/products")}
-              className="w-full py-3.5 px-6 bg-[#dcfe50] hover:bg-lime-300 text-slate-950 font-black rounded-xl text-sm transition-all duration-300 shadow-lg shadow-lime-500/20 active:scale-95 flex items-center justify-center gap-2"
-            >
-              🔍 Browse Products to Compare
-            </button>
-
-            <button
-              onClick={() => fetchProducts(["545", "544"])}
-              className="w-full py-3 px-6 bg-slate-700/60 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-amber-500/50 active:scale-95 flex items-center justify-center gap-2"
-            >
-              ⚡ Quick Load Popular Laptops
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
-      {loading ? (
-        <div className="min-h-screen w-full flex items-center justify-center">
+      {loading && visibleProducts.length === 0 ? (
+        <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
           <ClipLoader size={35} color="#dcfe50" />
           <span className="ml-3 font-bold text-sm">Loading Comparison Data...</span>
         </div>
       ) : (
         <ModernCompareView
-          products={visibleProducts.length > 0 ? visibleProducts : (comparisons && comparisons.length > 0 ? compareList : [])}
+          products={visibleProducts}
           onRemove={handleRemoveProduct}
           onClear={handleClearAll}
         />
@@ -166,4 +143,6 @@ export const Compare = () => {
     </div>
   );
 };
+
+export default Compare;
 

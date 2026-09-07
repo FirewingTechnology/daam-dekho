@@ -34,7 +34,7 @@ if (fs.existsSync(bundleDir)) {
   jsFiles.forEach(file => {
     const content = fs.readFileSync(path.join(bundleDir, file), 'utf8');
     if (content.includes('localhost:8001')) hasLocalhost8001 = true;
-    if (content.includes('api.daamdekho.com') || content.includes('daam-dekho-backend.onrender.com')) hasApiDomain = true;
+    if (content.includes('api.daamdekho.com') || content.includes('daam-dekho-backend.onrender.com') || content.includes('dev-daam-dekho.onrender.com')) hasApiDomain = true;
   });
 }
 logCheck('CHECK 1: Prod Bundle API URL', !hasLocalhost8001 && hasApiDomain, '0 localhost:8001 in bundle, production backend URL active');
