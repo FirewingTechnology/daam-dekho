@@ -338,28 +338,38 @@ export const getProductBySlug = async (slug) => {
 
     // Get price history for the best vendor of this variant
     if (variant.vendors.length > 0) {
-      variant.priceHistory = await query(`
-        SELECT price, recorded_at as created_at 
-        FROM price_history 
-        WHERE vendor_product_id = ? 
-        ORDER BY recorded_at ASC 
-        LIMIT 30
-      `, [variant.vendors[0].id]);
+      try {
+        variant.priceHistory = await query(`
+          SELECT price, recorded_at as created_at 
+          FROM price_history 
+          WHERE vendor_product_id = ? 
+          ORDER BY recorded_at ASC 
+          LIMIT 30
+        `, [variant.vendors[0].id]);
+      } catch (err) {
+        variant.priceHistory = [];
+      }
     }
   }
 
   // Unified Product Price History across variants
-  const productPriceHistory = await query(
-    `SELECT ph.id, ph.vendor_product_id, ph.variant_id, ph.vendor_id, ph.price, ph.currency, ph.recorded_at, 
-            ph.source, ph.confidence, ph.change_type, v.name as vendor_name
-     FROM price_history ph
-     JOIN product_variants pv ON ph.variant_id = pv.id
-     JOIN vendors v ON ph.vendor_id = v.id
-     WHERE pv.master_product_id = ? OR pv.product_id = ?
-     ORDER BY ph.recorded_at ASC, ph.id ASC
-     LIMIT 50`,
-    [product.id, product.id]
-  );
+  let productPriceHistory = [];
+  try {
+    productPriceHistory = await query(
+      `SELECT ph.id, ph.vendor_product_id, ph.variant_id, ph.vendor_id, ph.price, ph.currency, ph.recorded_at, 
+              ph.source, ph.confidence, ph.change_type, v.name as vendor_name
+       FROM price_history ph
+       JOIN product_variants pv ON ph.variant_id = pv.id
+       JOIN vendors v ON ph.vendor_id = v.id
+       WHERE pv.master_product_id = ? OR pv.product_id = ?
+       ORDER BY ph.recorded_at ASC, ph.id ASC
+       LIMIT 50`,
+      [product.id, product.id]
+    );
+  } catch (err) {
+    console.warn('Price history query fallback:', err.message);
+    productPriceHistory = [];
+  }
 
   const relatedProducts = await query(`
     SELECT pm.id, COALESCE(pm.canonical_title, pm.title) as title, pm.id as slug, pm.base_image, pm.base_image as image_url, 
