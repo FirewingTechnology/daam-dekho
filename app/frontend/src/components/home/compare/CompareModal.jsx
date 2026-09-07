@@ -36,18 +36,20 @@ const CompareModal = ({ activeTab, onClose, onSelect }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative overflow-hidden border border-gray-100">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-3 sm:p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl p-4 sm:p-6 relative overflow-hidden border border-gray-100">
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-green-400"></div>
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:text-black hover:bg-gray-200 transition-all text-sm font-bold shadow-sm"
-        >
-          ✕
-        </button>
-
-        <h3 className="text-2xl font-bold text-gray-800 mb-6 px-1 tracking-tight">Select Product to Compare</h3>
+        {/* Modal Header */}
+        <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6 pt-1">
+          <h3 className="text-lg sm:text-2xl font-bold text-gray-800 tracking-tight">Select Product to Compare</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:text-black hover:bg-gray-200 transition-all text-sm font-bold shadow-sm shrink-0 min-touch-target"
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+        </div>
 
         {/* Search */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6 px-1">

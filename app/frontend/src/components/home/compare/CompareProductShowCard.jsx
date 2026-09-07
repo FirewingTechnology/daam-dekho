@@ -26,10 +26,10 @@ const ProductCompareShowCard = ({ product, onSelect }) => {
     return null;
   };
 
-  // Get real product image from Unsplash as fallback
+  // Use a neutral local placeholder only when source image data is unavailable as fallback
   const getGoogleImage = () => {
     const searchQuery = encodeURIComponent(product.title || product.brand || 'product');
-    return `https://source.unsplash.com/200x200/?${searchQuery.replace(/%20/g, '+')}`;
+    return `/product-placeholder.svg`;
   };
 
   const thumbnail = getThumbnail() || getGoogleImage();

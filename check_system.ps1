@@ -12,7 +12,8 @@ try {
 # Test 2: Categories
 try {
     $cats = Invoke-RestMethod -Uri 'http://localhost:8001/api/categories' -TimeoutSec 5
-    Write-Host ("[PASS] Categories API - " + $cats.Count + " categories") -ForegroundColor Green
+    $cCount = if ($cats.categories) { $cats.categories.Count } elseif ($cats.Count) { $cats.Count } else { 0 }
+    Write-Host ("[PASS] Categories API - " + $cCount + " categories") -ForegroundColor Green
 } catch {
     Write-Host "[FAIL] Categories: $_" -ForegroundColor Red
 }
@@ -20,7 +21,8 @@ try {
 # Test 3: Brands
 try {
     $brands = Invoke-RestMethod -Uri 'http://localhost:8001/api/brands' -TimeoutSec 5
-    Write-Host ("[PASS] Brands API - " + $brands.Count + " brands") -ForegroundColor Green
+    $bCount = if ($brands.brands) { $brands.brands.Count } elseif ($brands.Count) { $brands.Count } else { 0 }
+    Write-Host ("[PASS] Brands API - " + $bCount + " brands") -ForegroundColor Green
 } catch {
     Write-Host "[FAIL] Brands: $_" -ForegroundColor Red
 }
@@ -38,10 +40,11 @@ try {
     $firstProd = Invoke-RestMethod -Uri 'http://localhost:8001/api/products?limit=1' -TimeoutSec 5
     $targetPid = ($firstProd.products | Select-Object -First 1).id
     $r = Invoke-RestMethod -Uri "http://localhost:8001/api/products/$targetPid" -TimeoutSec 5
+    $pTitle = if ($r.title) { $r.title } elseif ($r.product.title) { $r.product.title } else { "Product $targetPid" }
     $variantCount = if ($r.variants) { $r.variants.Count } else { 0 }
-    Write-Host ("[PASS] Product Detail #" + $targetPid + " - '" + $r.product.title + "' - Variants: " + $variantCount) -ForegroundColor Green
+    Write-Host ("[PASS] Product Detail #" + $targetPid + " - '" + $pTitle + "' - Variants: " + $variantCount) -ForegroundColor Green
     if ($variantCount -gt 0) {
-        $offerCount = ($r.variants | ForEach-Object { $_.vendors.Count } | Measure-Object -Sum).Sum
+        $offerCount = ($r.variants | ForEach-Object { if ($_.vendors) { $_.vendors.Count } else { 0 } } | Measure-Object -Sum).Sum
         Write-Host "       Vendor Offers across variants: $offerCount" -ForegroundColor Yellow
     }
 } catch {

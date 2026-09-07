@@ -91,10 +91,10 @@ const [filters, setFilters] = useState({
   const cleanedFilters = useMemo(() => cleanFilters(filters), [filters]);
 
   return (
-    <section className="relative maxscreen screen-margin overflow-hidden py-20">
-      <div className="flex py-8 gap-4 w-full ">
+    <section className="relative maxscreen screen-margin overflow-hidden py-8 sm:py-16 md:py-20">
+      <div className="flex py-4 sm:py-8 gap-4 w-full min-w-0">
         <ResponsiveSidebarWrapper onFiltersChange={setFilters} initialFilters={filters} />
-        <section className="min-h-screen w-full ">
+        <section className="min-h-screen w-full min-w-0">
           <SearchSortBar
             searchPlaceholder="Search for anything..."
             sortLabel="Sort by:"

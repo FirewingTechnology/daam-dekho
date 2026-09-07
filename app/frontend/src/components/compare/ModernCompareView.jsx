@@ -96,14 +96,14 @@ const SpecRow = React.memo(({ label, keys, products, highlightDiff, highlightBes
     <tr className={`border-b border-gray-200 dark:border-gray-800/80 transition-colors ${
       isDifferent ? "bg-blue-50/40 dark:bg-blue-950/20" : "hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
     }`}>
-      <td className="py-2.5 sm:py-3 px-2.5 sm:px-4 text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-950 sticky left-0 z-20 border-r border-gray-200 dark:border-gray-800 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[130px] sm:w-56 min-w-[130px] sm:min-w-[220px] max-w-[130px] sm:max-w-[220px] align-middle">
+      <td className="py-2.5 sm:py-3 px-2 sm:px-4 text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-950 sticky left-0 z-20 border-r border-gray-200 dark:border-gray-800 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[118px] xs:w-[125px] sm:w-56 min-w-[118px] xs:min-w-[125px] sm:min-w-[220px] max-w-[118px] xs:max-w-[125px] sm:max-w-[220px] align-middle">
         <div className="flex items-center justify-between gap-1 sm:gap-2 min-w-0">
           <span className="flex items-center gap-1 sm:gap-1.5 min-w-0">
             {Icon && <Icon className="text-primary-dark dark:text-primary shrink-0 text-xs sm:text-sm" />}
-            <span className="line-clamp-2 leading-tight break-words text-[10.5px] sm:text-xs">{label}</span>
+            <span className="line-clamp-2 leading-tight break-words text-[10px] sm:text-xs">{label}</span>
           </span>
           {isDifferent && (
-            <span className="text-[9px] sm:text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/60 px-1 sm:px-1.5 py-0.5 rounded shrink-0">
+            <span className="text-[8.5px] sm:text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/60 px-1 sm:px-1.5 py-0.5 rounded shrink-0">
               Diff
             </span>
           )}
@@ -118,7 +118,7 @@ const SpecRow = React.memo(({ label, keys, products, highlightDiff, highlightBes
         return (
           <td 
             key={product._id || product.id || idx} 
-            className="py-2.5 sm:py-3 px-2.5 sm:px-4 text-[11px] sm:text-xs text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-800 text-center font-medium w-[180px] sm:w-64 min-w-[180px] sm:min-w-[240px] align-middle"
+            className="py-2.5 sm:py-3 px-2 sm:px-4 text-[11px] sm:text-xs text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-800 text-center font-medium w-[165px] sm:w-64 min-w-[165px] sm:min-w-[240px] align-middle"
           >
             <span className={`inline-block px-2 sm:px-2.5 py-1 rounded-lg max-w-full break-words leading-tight ${
               isBest 
@@ -262,7 +262,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setHighlightDiff(!highlightDiff)}
               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[40px] shrink-0 ${
@@ -316,10 +316,10 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
             <table className="w-full text-left border-collapse table-fixed min-w-max">
               <colgroup>
                 {/* Left Column: Spec Label Column */}
-                <col className="w-[130px] sm:w-56" />
+                <col className="w-[118px] xs:w-[125px] sm:w-56" />
                 {/* Product Columns */}
                 {products.map((_, idx) => (
-                  <col key={idx} className="w-[180px] sm:w-64" />
+                  <col key={idx} className="w-[165px] sm:w-64" />
                 ))}
               </colgroup>
 
@@ -327,7 +327,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
               <thead>
                 <tr className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                   {/* Top-Left Corner Header Cell */}
-                  <th className="p-2.5 sm:p-4 bg-gray-100 dark:bg-gray-950 sticky left-0 z-30 border-r border-b border-gray-200 dark:border-gray-800 align-top shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[130px] sm:w-56 min-w-[130px] sm:min-w-[220px] max-w-[130px] sm:max-w-[220px]">
+                  <th className="p-2 sm:p-4 bg-gray-100 dark:bg-gray-950 sticky left-0 z-30 border-r border-b border-gray-200 dark:border-gray-800 align-top shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[118px] xs:w-[125px] sm:w-56 min-w-[118px] xs:min-w-[125px] sm:min-w-[220px] max-w-[118px] xs:max-w-[125px] sm:max-w-[220px]">
                     <div className="flex flex-col justify-between h-full min-h-[190px] sm:min-h-[220px]">
                       <div>
                         <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
@@ -371,7 +371,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                     const isBestValue = lowestPrice > 0 && lowestPrice === cheapestPriceInGroup;
 
                     return (
-                      <th key={product._id || product.id || idx} className="p-2.5 sm:p-4 border-r border-gray-200 dark:border-gray-800 align-top w-[180px] sm:w-64 min-w-[180px] sm:min-w-[240px]">
+                      <th key={product._id || product.id || idx} className="p-2 sm:p-4 border-r border-gray-200 dark:border-gray-800 align-top w-[165px] sm:w-64 min-w-[165px] sm:min-w-[240px]">
                         <div className="relative group flex flex-col items-center text-center h-full min-h-[190px] sm:min-h-[220px]">
                           
                           <button
@@ -395,13 +395,13 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                           {/* Constrained Image Box */}
                           <div className="w-full h-20 sm:h-28 flex items-center justify-center overflow-hidden mb-1.5">
                             <img
-                              src={product.base_image || product.image || product.image_url || product.image?.thumbnail || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80"}
+                              src={product.base_image || product.image || product.image_url || product.image?.thumbnail || "/product-placeholder.svg"}
                               alt={product.title || product.name || "Product"}
                               referrerPolicy="no-referrer"
                               className="max-w-full max-h-full object-contain hover:scale-105 transition-transform"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+                                e.target.src = '/product-placeholder.svg';
                               }}
                             />
                           </div>
@@ -414,8 +414,8 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
 
                           <div className="flex items-center justify-center gap-1 text-[10.5px] sm:text-xs text-amber-500 font-bold mb-1.5">
                             <FiStar className="fill-amber-400 text-xs" />
-                            <span>{product.rating || 4.5}</span>
-                            <span className="text-gray-400 font-normal">({product.review_count || 120})</span>
+                            <span>{product.rating != null && Number(product.rating) > 0 ? Number(product.rating).toFixed(1) : "N/A"}</span>
+                            <span className="text-gray-400 font-normal">({product.review_count != null && Number(product.review_count) > 0 ? Number(product.review_count).toLocaleString("en-IN") : "N/A"})</span>
                           </div>
 
                           <div className="mt-auto pt-1.5">
@@ -445,7 +445,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gradient-to-r from-blue-50/80 via-purple-50/80 to-pink-50/80 dark:from-blue-950/40 dark:via-purple-950/40 dark:to-pink-950/40 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("winner")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("winner")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate">
                             <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0" />
                             <span className="truncate">⚡ Quick Buying Decision Matrix</span>
@@ -473,7 +473,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("overview")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("overview")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiZap className="text-primary-dark dark:text-primary shrink-0" /> <span className="truncate">Key Overview & Identification</span></span>
                           {expandedSections.overview ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -497,7 +497,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("performance")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("performance")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiCpu className="text-blue-500 shrink-0" /> <span className="truncate">Performance & Hardware Specs</span></span>
                           {expandedSections.performance ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -519,7 +519,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("display")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("display")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiTv className="text-purple-500 shrink-0" /> <span className="truncate">Display Quality & Form Factor</span></span>
                           {expandedSections.display ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -539,7 +539,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("camera")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("camera")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiCamera className="text-emerald-500 shrink-0" /> <span className="truncate">Camera Setup</span></span>
                           {expandedSections.camera ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -558,7 +558,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("battery")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("battery")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiBattery className="text-amber-500 shrink-0" /> <span className="truncate">Battery & Power Management</span></span>
                           {expandedSections.battery ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -577,7 +577,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("connectivity")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("connectivity")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiWifi className="text-cyan-500 shrink-0" /> <span className="truncate">Connectivity & Ports</span></span>
                           {expandedSections.connectivity ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -598,7 +598,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                   <>
                     <tr className="bg-gray-100 dark:bg-gray-800/80 border-y border-gray-200 dark:border-gray-800">
                       <td colSpan={products.length + 1} className="py-2.5 sm:py-3 px-3 sm:px-4">
-                        <button onClick={() => toggleSection("offers")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-[calc(100vw-3rem)] sm:max-w-none min-h-[36px]">
+                        <button onClick={() => toggleSection("offers")} className="flex items-center justify-between w-full font-black text-[11px] sm:text-xs text-gray-900 dark:text-white uppercase tracking-wider sticky left-3 sm:left-4 max-w-full min-h-[36px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 truncate"><FiDollarSign className="text-green-500 shrink-0" /> <span className="truncate">Live Vendor Price Matrix</span></span>
                           {expandedSections.offers ? <FiChevronUp /> : <FiChevronDown />}
                         </button>
@@ -606,7 +606,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                     </tr>
                     {expandedSections.offers && (
                       <tr className="border-b border-gray-200 dark:border-gray-800">
-                        <td className="py-2.5 sm:py-3 px-2.5 sm:px-4 text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-950 sticky left-0 z-20 border-r border-gray-200 dark:border-gray-800 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[130px] sm:w-56 min-w-[130px] sm:min-w-[220px] max-w-[130px] sm:max-w-[220px] align-top">
+                        <td className="py-2.5 sm:py-3 px-2 sm:px-4 text-[11px] sm:text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-950 sticky left-0 z-20 border-r border-gray-200 dark:border-gray-800 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] w-[118px] xs:w-[125px] sm:w-56 min-w-[118px] xs:min-w-[125px] sm:min-w-[220px] max-w-[118px] xs:max-w-[125px] sm:max-w-[220px] align-top">
                           <div className="flex items-center gap-1.5">
                             <FiDollarSign className="text-green-500 text-sm shrink-0" />
                             <span className="line-clamp-2 leading-tight">Vendor Stores</span>
@@ -631,7 +631,7 @@ const ModernCompareView = ({ products: initialProducts, onRemove, onClear }) => 
                             : [];
 
                           return (
-                            <td key={product._id || product.id || idx} className="p-2.5 sm:p-3 border-r border-gray-200 dark:border-gray-800 text-center align-top w-[180px] sm:w-64 min-w-[180px] sm:min-w-[240px]">
+                            <td key={product._id || product.id || idx} className="p-2 sm:p-3 border-r border-gray-200 dark:border-gray-800 text-center align-top w-[165px] sm:w-64 min-w-[165px] sm:min-w-[240px]">
                               <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                                 {vendors.length > 0 ? (
                                   vendors.map((v, vIdx) => (

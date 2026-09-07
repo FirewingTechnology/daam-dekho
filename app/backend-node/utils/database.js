@@ -101,10 +101,10 @@ function extractEMIDetails(offers) {
 
   const is_no_cost = t_lower.includes('no cost') || t_lower.includes('no-cost') || t_lower.includes('0%') || t_lower.includes('zero cost');
   const amountMatch = offersText.match(/(?:₹|\$|from|starts?\s*at)\s*(\d+(?:,\d{3})*|\d+)/i);
-  const starting_amount = amountMatch ? `₹${amountMatch[1]}` : '₹1,250/month';
+  const starting_amount = amountMatch ? `₹${amountMatch[1]}` : null;
 
   const monthMatches = offersText.match(/(\d{1,2})\s*(?:month|months)/gi);
-  const months = monthMatches ? Array.from(new Set(monthMatches.map(m => parseInt(m.match(/\d+/)[0])))).sort((a, b) => a - b) : [3, 6, 9, 12];
+  const months = monthMatches ? Array.from(new Set(monthMatches.map(m => parseInt(m.match(/\d+/)[0])))).sort((a, b) => a - b) : [];
 
   const banks = [];
   ['HDFC', 'ICICI', 'Axis', 'SBI', 'Kotak', 'IndusInd', 'Yes Bank', 'RBL'].forEach(b => {
@@ -116,7 +116,7 @@ function extractEMIDetails(offers) {
     is_no_cost,
     starting_amount,
     months,
-    eligible_banks: banks.length ? banks : ['HDFC', 'ICICI', 'SBI', 'Axis']
+    eligible_banks: banks
   };
 }
 
@@ -199,18 +199,18 @@ export async function searchProducts(options = {}) {
         }
 
         const formattedProducts = (rows || []).map(r => {
-          const vendorsList = r.available_vendors ? r.available_vendors.split(',') : ['Amazon'];
+          const vendorsList = r.available_vendors ? r.available_vendors.split(',') : [];
           return {
             id: r.id,
             title: r.title,
             brand: r.brand,
             category: r.category,
-            image: r.image || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80',
-            image_urls: [r.image || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80'],
+            image: r.image || '/product-placeholder.svg',
+            image_urls: r.image ? [r.image] : [],
             price: r.price || r.discounted_price || 0,
             discounted_price: r.discounted_price || r.price || 0,
-            rating: r.rating || 4.5,
-            reviews: r.reviews || 120,
+            rating: r.rating ?? null,
+            reviews: r.reviews ?? null,
             vendor: vendorsList[0],
             available_vendors: vendorsList,
             total_offers: r.total_offers || vendorsList.length
@@ -282,12 +282,12 @@ export async function getProductById(productId) {
             price: r.price,
             discounted_price: r.price,
             original_price: r.mrp || r.price,
-            rating: r.rating || 4.5,
-            reviews: r.reviews || 85,
+            rating: r.rating ?? null,
+            reviews: r.reviews ?? null,
             product_link: r.product_link,
-            image: masterRow.base_image || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80',
-            availability: r.stock_status || 'In Stock',
-            seller: r.seller || `${r.platform} Official Store`,
+            image: masterRow.base_image || '/product-placeholder.svg',
+            availability: r.stock_status || null,
+            seller: r.seller || null,
             offers: offers,
             emi_details: emiDetails
           };
@@ -312,43 +312,43 @@ export async function getProductById(productId) {
           // Structured Specification Matrix
           const structuredSpecs = {
             Display: {
-              "Resolution": rawSpecs.display_resolution || rawSpecs.display || "FHD+ AMOLED Display",
-              "Panel": rawSpecs.display_type || "AMOLED",
-              "Refresh Rate": rawSpecs.refresh_rate || "120Hz",
-              "Protection": rawSpecs.screen_protection || "Corning Gorilla Glass Victus"
+              "Resolution": rawSpecs.display_resolution || rawSpecs.display || "N/A",
+              "Panel": rawSpecs.display_type || "N/A",
+              "Refresh Rate": rawSpecs.refresh_rate || "N/A",
+              "Protection": rawSpecs.screen_protection || "N/A"
             },
             Battery: {
-              "Capacity": rawSpecs.battery || "5000 mAh",
-              "Type": "Li-Po Fast Charging",
-              "Charging": rawSpecs.charging || "80W SuperVOOC / Fast Charging",
-              "Wireless Charging": rawSpecs.wireless_charging || "Supported"
+              "Capacity": rawSpecs.battery || "N/A",
+              "Type": rawSpecs.battery_type || "N/A",
+              "Charging": rawSpecs.charging || "N/A",
+              "Wireless Charging": rawSpecs.wireless_charging || "N/A"
             },
             Camera: {
-              "Rear": rawSpecs.camera || "50MP Main + 12MP Ultra-Wide + 8MP Telephoto",
-              "Front": "32MP Selfie Camera",
-              "OIS": "Optical Image Stabilization",
-              "Video": "4K at 60fps"
+              "Rear": rawSpecs.camera || "N/A",
+              "Front": rawSpecs.front_camera || "N/A",
+              "OIS": rawSpecs.ois || "N/A",
+              "Video": rawSpecs.video || "N/A"
             },
             Connectivity: {
-              "5G Bands": "n1, n3, n5, n8, n28, n41, n77, n78",
-              "Dual SIM": "Yes, Dual Standby",
-              "WiFi": "WiFi 6 (802.11 a/b/g/n/ac/ax)",
-              "Bluetooth": "v5.3",
-              "NFC": "Supported"
+              "5G Bands": rawSpecs.network_bands || "N/A",
+              "Dual SIM": rawSpecs.dual_sim || "N/A",
+              "WiFi": rawSpecs.wifi || "N/A",
+              "Bluetooth": rawSpecs.bluetooth || "N/A",
+              "NFC": rawSpecs.nfc || "N/A"
             },
             Processor: {
-              "CPU": rawSpecs.processor || rawSpecs.cpu || "Snapdragon / Dimensity Flagship Chip",
-              "GPU": rawSpecs.gpu || "Adreno / Mali Graphics",
-              "Manufacturing Node": "4nm TSMC"
+              "CPU": rawSpecs.processor || rawSpecs.cpu || "N/A",
+              "GPU": rawSpecs.gpu || "N/A",
+              "Manufacturing Node": rawSpecs.manufacturing_node || "N/A"
             },
             Memory: {
-              "RAM": rawSpecs.ram || "12GB LPDDR5X",
-              "Storage": rawSpecs.rom || rawSpecs.storage || "256GB UFS 4.0",
-              "Expandable Storage": "No"
+              "RAM": rawSpecs.ram || "N/A",
+              "Storage": rawSpecs.rom || rawSpecs.storage || "N/A",
+              "Expandable Storage": rawSpecs.expandable_storage || "N/A"
             },
             OS: {
-              "Version": rawSpecs.os || "Android 15",
-              "Promised Updates": "4 Years OS + 5 Years Security Updates"
+              "Version": rawSpecs.os || "N/A",
+              "Promised Updates": rawSpecs.promised_updates || "N/A"
             }
           };
 
@@ -356,7 +356,7 @@ export async function getProductById(productId) {
         const imageQuery = `SELECT image_url FROM product_images WHERE product_id = ?`;
         db.all(imageQuery, [productId], (err, imageRows) => {
           const galleryImages = (imageRows || []).map(ir => ir.image_url);
-          const baseImg = masterRow.base_image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+          const baseImg = masterRow.base_image || '/product-placeholder.svg';
           const allImages = galleryImages.length > 0 ? galleryImages : [baseImg];
 
           const expectedVendors = ['Amazon', 'Flipkart', 'Croma', 'JioMart', 'Vijay Sales'];
@@ -369,8 +369,8 @@ export async function getProductById(productId) {
             canonical_title: canonicalTitle,
             brand: masterRow.brand,
             category: masterRow.category,
-            rating: vendorList.length ? Math.max(...vendorList.map(v => v.rating)) : 4.5,
-            reviews: vendorList.reduce((acc, v) => acc + (v.reviews || 0), 0) || 150,
+            rating: vendorList.length ? (() => { const vals = vendorList.map(v => Number(v.rating)).filter(Number.isFinite); return vals.length ? Math.max(...vals) : null; })() : null,
+            reviews: (() => { const vals = vendorList.map(v => Number(v.reviews)).filter(Number.isFinite); return vals.length ? vals.reduce((acc, v) => acc + v, 0) : null; })(),
             price: vendorList.length ? vendorList[0].price : 0,
             discounted_price: vendorList.length ? vendorList[0].price : 0,
             base_image: baseImg,
@@ -461,7 +461,7 @@ export async function getVendorStatistics() {
         (rows || []).forEach(r => {
           stats[r.vendor.toLowerCase().replace(" ", "")] = {
             total_products: r.total_products || 0,
-            avg_rating: r.avg_rating ? parseFloat(r.avg_rating.toFixed(2)) : 4.5,
+            avg_rating: r.avg_rating != null ? parseFloat(Number(r.avg_rating).toFixed(2)) : null,
             min_price: r.min_price || 0,
             max_price: r.max_price || 0
           };

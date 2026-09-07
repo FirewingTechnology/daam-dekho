@@ -68,15 +68,15 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       <div className={`glass-header transition-all duration-300 ${scrolled ? "py-2.5 shadow-lg" : "py-3 sm:py-4"}`}>
-        <div className="maxscreen screen-margin flex justify-between items-center">
+        <div className="maxscreen px-3 sm:px-6 lg:px-8 flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="group flex items-center gap-2">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black text-lg sm:text-xl group-hover:rotate-12 transition-transform duration-300">
+          <Link to="/" className="group flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center font-black text-black text-base sm:text-xl group-hover:rotate-12 transition-transform duration-300 shrink-0">
               D
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-lg sm:text-xl font-black tracking-tighter text-white">DAAM DEKHO</span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Price Tracker</span>
+              <span className="text-base sm:text-xl font-black tracking-tighter text-white">DAAM DEKHO</span>
+              <span className="hidden xs:block text-[9px] sm:text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Price Tracker</span>
             </div>
           </Link>
 
@@ -154,35 +154,35 @@ const Header = () => {
           </nav>
 
           {/* Mobile Action Controls */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link to="/products" className="p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center">
-              <FiSearch size={18} />
+          <div className="flex items-center gap-1 sm:gap-2 lg:hidden shrink-0">
+            <Link to="/products" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 text-white flex items-center justify-center min-touch-target" aria-label="Search Products">
+              <FiSearch size={16} />
             </Link>
 
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 text-white flex items-center justify-center min-touch-target"
               aria-label="Toggle Theme"
             >
-              {theme === 'dark' ? <FiSun className="text-amber-400" size={18} /> : <FiMoon size={18} />}
+              {theme === 'dark' ? <FiSun className="text-amber-400" size={16} /> : <FiMoon size={16} />}
             </button>
 
-            <Link to="/compare" className="relative p-2.5 rounded-full bg-white/10 text-white min-touch-target flex items-center justify-center">
-              <FiLayers size={18} />
+            <Link to="/compare" className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 text-white flex items-center justify-center min-touch-target" aria-label="Compare Products">
+              <FiLayers size={16} />
               {compareList.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-primary text-black font-black text-[10px] sm:text-xs w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center">
                   {compareList.length}
                 </span>
               )}
             </Link>
 
             <button 
-              className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors min-touch-target flex items-center justify-center"
+              className="text-white w-9 h-9 sm:w-10 sm:h-10 hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center min-touch-target"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
               aria-expanded={isMobileMenuOpen}
             >
-              {isMobileMenuOpen ? <FiX size={26} /> : <FiMenu size={26} />}
+              {isMobileMenuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
             </button>
           </div>
         </div>

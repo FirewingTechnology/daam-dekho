@@ -23,7 +23,7 @@ const OffersAndEmiModal = ({ isOpen, onClose, vendorName, vendorLogo, price, off
   const cashbackOffers = offersDetail.cashback_offers || [];
   const coupons = offersDetail.coupons || [];
   const tenures = emiData.tenures || [];
-  const eligibleBanks = emiData.eligible_banks || ["HDFC Bank", "ICICI Bank", "SBI Card", "Axis Bank", "Kotak Bank", "Bajaj Finserv"];
+  const eligibleBanks = Array.isArray(emiData.eligible_banks) ? emiData.eligible_banks : [];
 
   // Handle coupon copy
   const handleCopyCode = (code) => {
@@ -298,7 +298,7 @@ const OffersAndEmiModal = ({ isOpen, onClose, vendorName, vendorLogo, price, off
 
                   <div className="bg-white p-3 rounded-lg border border-purple-200 text-center flex-shrink-0 min-w-[140px]">
                     <span className="text-[10px] text-gray-500 block uppercase font-bold">Max Savings</span>
-                    <span className="text-lg font-black text-purple-700">₹{(ex.max_discount || 15000).toLocaleString('en-IN')}</span>
+                    <span className="text-lg font-black text-purple-700">₹{Number(ex.max_discount).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               ))}

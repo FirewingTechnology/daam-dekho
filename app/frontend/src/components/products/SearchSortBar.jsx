@@ -17,7 +17,7 @@ const SearchSortBar = ({
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full ">
       {/* Search Bar */}
-      <div className="flex items-center w-full sm:w-1/2 md:1/3 border border-gray-300 rounded px-3 py-2 bg-white shadow-sm">
+      <div className="flex items-center w-full sm:w-1/2 md:w-1/3 border border-gray-300 rounded px-3 py-2 bg-white shadow-sm">
         <input
           type="text"
           placeholder={searchPlaceholder}
@@ -28,7 +28,7 @@ const SearchSortBar = ({
       </div>
 
       {/* Custom Sort Dropdown */}
-      <div className="hidden sm:flex relative w-full sm:w-1/2 md:1/3  items-center gap-2 whitespace-nowrap">
+      <div className="hidden sm:flex relative w-full sm:w-1/2 md:w-1/3 items-center gap-2 whitespace-nowrap">
         {/* Label */}
         <span className="text-black text-sm font-medium whitespace-nowrap">
           {sortLabel}

@@ -75,7 +75,7 @@ export const getFilterOptions = async (req, res, next) => {
 
 export const getSitemap = async (req, res, next) => {
   try {
-    const xml = await productService.getSitemapXml('http://localhost:5173');
+    const xml = await productService.getSitemapXml(process.env.PUBLIC_FRONTEND_URL);
     res.header('Content-Type', 'application/xml');
     res.send(xml);
   } catch (err) {
@@ -85,5 +85,5 @@ export const getSitemap = async (req, res, next) => {
 
 export const getRobots = (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nSitemap: http://localhost:8001/sitemap.xml\n");
+  res.send(`User-agent: *\nAllow: /\nSitemap: ${process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`}/sitemap.xml\n`);
 };

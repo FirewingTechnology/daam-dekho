@@ -47,7 +47,7 @@ const DeviceCards = ({ products = [], onRemove }) => {
                 className="w-full h-28 object-contain mb-2"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+                  e.target.src = '/product-placeholder.svg';
                 }}
               />
 

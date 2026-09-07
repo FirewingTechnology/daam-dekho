@@ -28,10 +28,10 @@ const ProductSearchCard = ({ product }) => {
     return null;
   };
 
-  // Get real product image from Unsplash
+  // Use a neutral local placeholder only when source image data is unavailable
   const getGoogleImage = () => {
     const searchQuery = encodeURIComponent(product.title || product.brand || 'product');
-    return `https://source.unsplash.com/200x200/?${searchQuery.replace(/%20/g, '+')}`;
+    return `/product-placeholder.svg`;
   };
 
   const thumbnail = getImageUrl() || getGoogleImage();

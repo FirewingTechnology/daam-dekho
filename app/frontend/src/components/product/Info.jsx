@@ -211,7 +211,7 @@ const Info = ({ product = {} }) => {
               className="max-w-full max-h-[320px] sm:max-h-[400px] object-contain transition-transform duration-300"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+                e.target.src = '/product-placeholder.svg';
               }}
             />
           ) : (

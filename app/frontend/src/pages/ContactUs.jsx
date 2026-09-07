@@ -144,7 +144,7 @@ function ContactUs() {
       <section className="w-full bg-[#dcfe50] ">
         <div className="maxscreen screen-margin overflow-hidden p-6 md:p-12 ">
           <div className="flex flex-col gap-8 md:flex-row md:justify-between md:items-start flex-wrap overflow-auto">
-            <div className="flex-1 min-w-[220px]">
+            <div className="flex-1 min-w-0 md:min-w-[220px]">
               <h2 className="font-semibold text-base md:text-lg">
                 Contact Info
               </h2>
@@ -153,7 +153,7 @@ function ContactUs() {
               </h1>
             </div>
 
-            <div className="flex-1 min-w-[220px]">
+            <div className="flex-1 min-w-0 md:min-w-[220px]">
               <h2 className="font-semibold text-base md:text-lg">Email</h2>
               <h2 className="font-semibold text-sm md:text-base">
                 Help@info.com
@@ -163,7 +163,7 @@ function ContactUs() {
               </h6>
             </div>
 
-            <div className="flex-1 min-w-[220px]">
+            <div className="flex-1 min-w-0 md:min-w-[220px]">
               <h2 className="font-semibold text-base md:text-lg">Mobile</h2>
               <h2 className="font-semibold text-sm md:text-base">
                 (808) 998-34256

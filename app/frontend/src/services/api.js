@@ -1,20 +1,10 @@
 import axios from 'axios';
 
-let rawUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL;
+const rawUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_URL || (import.meta.env.DEV ? 'http://localhost:8001/api' : '');
 if (!rawUrl) {
-  if (import.meta.env.DEV) {
-    rawUrl = 'http://localhost:8001/api';
-  } else {
-    rawUrl = 'https://dev-daam-dekho.onrender.com/api';
-  }
+  throw new Error('API URL is not configured. Set VITE_API_URL for production.');
 }
-if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-  rawUrl = `https://${rawUrl}`;
-}
-if (rawUrl && !rawUrl.endsWith('/api')) {
-  rawUrl = `${rawUrl.replace(/\/$/, '')}/api`;
-}
-const API_BASE_URL = rawUrl;
+const API_BASE_URL = rawUrl.replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

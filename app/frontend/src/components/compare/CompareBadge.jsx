@@ -13,13 +13,14 @@ const CompareBadge = () => {
   return (
     <button
       onClick={() => navigate("/compare-products")}
-      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg flex items-center gap-2 transition-all hover:scale-110 z-40"
+      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-full shadow-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 z-40 min-touch-target"
+      aria-label={`View ${compareList.length} compared products`}
     >
-      <span className="bg-blue-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+      <span className="bg-blue-800 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs sm:text-sm font-bold">
         {compareList.length}
       </span>
-      <span>Compare</span>
-      <FaChevronRight className="w-4 h-4" />
+      <span className="text-xs sm:text-sm">Compare</span>
+      <FaChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
     </button>
   );
 };

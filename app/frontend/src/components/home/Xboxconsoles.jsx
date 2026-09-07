@@ -23,10 +23,10 @@ const Xboxconsoles = () => {
             for Rs.2 USD.
           </p>
           <Link to="/products"
-  className="mt-6 bg-[#dcfe50] w-41 hover:bg-lime-300 text-black font-semibold px-6 py-2 rounded flex items-center gap-2 text-sm sm:text-base transition"
->
-  SHOP NOW <FaArrowRight size={16} />
-</Link>
+            className="mt-6 bg-[#dcfe50] w-fit hover:bg-lime-300 text-black font-bold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 text-sm sm:text-base transition-all shadow-sm"
+          >
+            SHOP NOW <FaArrowRight size={16} />
+          </Link>
         </div>
 
         {/* Image */}
@@ -36,7 +36,7 @@ const Xboxconsoles = () => {
             alt="Xbox Console"
             className="w-56 sm:w-64 md:w-72 lg:w-80"
           />
-          <div className="absolute top-[10vw] left-[10vw] bg-[#dcfe50] font-semibold rounded-full px-3 py-1 text-xs shadow border-4 border-white">
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 bg-[#dcfe50] font-bold rounded-full px-3 py-1 text-xs shadow border-2 border-white">
             Rs. 200
           </div>
         </div>
@@ -52,13 +52,13 @@ const Xboxconsoles = () => {
               New Google <br /> Pixel 6 Pro
             </p>
             <Link to="/products"
-             className="mt-6 bg-[#dcfe50] w-41 hover:bg-lime-300 text-black font-semibold px-6 py-2 rounded flex items-center gap-2 text-sm sm:text-base transition"
-           >
-             SHOP NOW <FaArrowRight size={16} />
-           </Link>
+              className="mt-6 bg-[#dcfe50] w-fit hover:bg-lime-300 text-black font-bold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 text-sm sm:text-base transition-all shadow-sm"
+            >
+              SHOP NOW <FaArrowRight size={16} />
+            </Link>
           </div>
           <div className="relative mt-4 md:mt-0 w-full md:w-1/2 flex justify-center">
-            <div className="absolute top-[5%]  sm:left-[5%] bg-[#EFD33D] text-xs font-bold px-3 py-1 rounded">
+            <div className="absolute top-2 left-2 bg-[#EFD33D] text-xs font-bold px-3 py-1 rounded">
               29% OFF
             </div>
             <img
@@ -86,8 +86,8 @@ const Xboxconsoles = () => {
               FlipBuds Pro
             </h3>
             <p className="text-[#2da5f3] font-semibold mt-2">Rs. 299 USD</p>
-             <Link to="/products"
-              className="mt-6 bg-[#dcfe50] w-41 hover:bg-lime-300 text-black font-semibold px-6 py-2 rounded flex items-center gap-2 text-sm sm:text-base transition"
+            <Link to="/products"
+              className="mt-6 bg-[#dcfe50] w-fit hover:bg-lime-300 text-black font-bold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 text-sm sm:text-base transition-all shadow-sm"
             >
               SHOP NOW <FaArrowRight size={16} />
             </Link>

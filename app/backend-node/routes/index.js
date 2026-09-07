@@ -89,6 +89,13 @@ router.post('/user/alerts', protect, userController.createAlert);
 router.delete('/user/alerts/:id', protect, userController.deleteAlert);
 
 import debugRoutes from './debugRoutes.js';
+import priceRefreshRouter from './priceRefresh.js';
+
+// Price Refresh & Monitoring Routes
+router.use('/price-refresh', priceRefreshRouter);
+
+// Price History & Freshness Convenience Routes
+router.use('/', priceRefreshRouter);
 
 // Debug & Lineage Routes (Mounted ONLY in non-production environments)
 if (process.env.NODE_ENV !== 'production') {

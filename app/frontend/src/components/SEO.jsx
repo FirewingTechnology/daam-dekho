@@ -5,7 +5,7 @@ const SEO = ({
   description = 'Compare prices across Amazon, Flipkart, Croma, JioMart & Vijay Sales. Find the lowest price, historical price drops, and verified deals on DaamDekho.',
   canonicalUrl = window.location.href,
   keywords = 'price comparison, daam dekho, lowest price india, compare iphone 15, amazon vs flipkart price',
-  ogImage = 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=1200&q=80',
+  ogImage = '/product-placeholder.svg',
   type = 'website'
 }) => {
   useEffect(() => {

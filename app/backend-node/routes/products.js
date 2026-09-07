@@ -38,7 +38,7 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80';
+const DEFAULT_FALLBACK_IMAGE = null;
 
 // Helper function to format products with proper image field
 const formatProductsWithImages = (products) => {

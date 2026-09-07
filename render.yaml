@@ -12,7 +12,34 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://dev-daam-dekho-web.onrender.com"
+      - key: PUBLIC_FRONTEND_URL
+        value: "https://dev-daam-dekho-web.onrender.com"
+      - key: PUBLIC_API_URL
+        value: "https://dev-daam-dekho.onrender.com"
+      - key: PRICE_REFRESH_ENABLED
+        value: "false" # In web API, set to false so worker handles it without duplicating
+
+  # Price Refresh Dedicated Background Worker
+  - type: worker
+    name: daam-dekho-price-worker
+    runtime: node
+    rootDir: app/backend-node
+    buildCommand: npm install
+    startCommand: npm run worker:price-refresh
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PRICE_REFRESH_ENABLED
+        value: "true"
+      - key: PRICE_REFRESH_INTERVAL_MINUTES
+        value: "15"
+      - key: PRICE_REFRESH_BATCH_SIZE
+        value: "20"
+      - key: PRICE_REFRESH_CONCURRENCY
+        value: "3"
+      - key: PRICE_REFRESH_STALE_AFTER_MINUTES
+        value: "30"
 
   # Vite React Frontend Static Site
   - type: web
@@ -26,8 +53,7 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: VITE_API_URL
+        value: "https://dev-daam-dekho.onrender.com/api"
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: daam-dekho-backend
-          property: host
+        value: "https://dev-daam-dekho.onrender.com/api"

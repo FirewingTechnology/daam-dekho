@@ -10,8 +10,8 @@ import apiRoutes from './routes/index.js';
 
 
 // BUG-08 FIX: Fail fast if JWT_SECRET is not set in production
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-  console.error('FATAL: JWT_SECRET environment variable is not set. Aborting.');
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || !process.env.ALLOWED_ORIGINS || !process.env.PUBLIC_FRONTEND_URL)) {
+  console.error('FATAL: JWT_SECRET, ALLOWED_ORIGINS and PUBLIC_FRONTEND_URL are required in production. Aborting.');
   process.exit(1);
 }
 
@@ -36,13 +36,13 @@ app.use(helmet({
 // BUG-09 FIX: Restrict CORS to known origins instead of wildcard
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174', 'https://daam-dekho-frontend.onrender.com', '*'];
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
     if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
     if (/^https?:\/\/[a-zA-Z0-9-]+\.onrender\.com$/.test(origin)) return callback(null, true);
     return callback(new Error(`CORS: Origin ${origin} not allowed`));
@@ -60,7 +60,7 @@ app.use(morgan('dev'));
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const { getSitemapXml } = await import('./services/productService.js');
-    const xml = await getSitemapXml('http://localhost:5173');
+    const xml = await getSitemapXml(process.env.PUBLIC_FRONTEND_URL);
     res.header('Content-Type', 'application/xml');
     res.send(xml);
   } catch (e) {
@@ -70,7 +70,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nSitemap: http://localhost:8001/sitemap.xml\n");
+  res.send(`User-agent: *\nAllow: /\nSitemap: ${process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`}/sitemap.xml\n`);
 });
 
 // Routes

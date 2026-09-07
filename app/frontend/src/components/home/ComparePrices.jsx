@@ -29,7 +29,7 @@ const ComparePrices = () => {
   ];
 
   return (
-    <div className="relative z-30 bg-white pt-16 pb-24 md:pt-24 md:pb-32">
+    <div className="relative z-30 bg-white dark:bg-gray-950 pt-16 pb-24 md:pt-24 md:pb-32 transition-colors duration-300">
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
@@ -44,14 +44,14 @@ const ComparePrices = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-gray-900 tracking-tight leading-[1.1] mb-6 animate-slide-up">
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-6 animate-slide-up">
           Compare Prices. <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400">
             Save Big.
           </span>
         </h1>
 
-        <p className="max-w-2xl text-lg md:text-xl text-gray-600 mb-10 animate-slide-up [animation-delay:200ms]">
+        <p className="max-w-2xl text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 animate-slide-up [animation-delay:200ms]">
           Real-time price tracking across India's top retailers. 
           Find the absolute best deals on the latest tech in seconds.
         </p>
@@ -67,15 +67,17 @@ const ComparePrices = () => {
             <div
               key={idx}
               onClick={() => navigate("/products", { state: { category: route } })}
-              className="group relative overflow-hidden rounded-3xl bg-gray-50 p-8 cursor-pointer border border-gray-100 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2"
+              className="group relative overflow-hidden rounded-3xl bg-gray-50 dark:bg-gray-900/80 p-8 cursor-pointer border border-gray-200/80 dark:border-gray-800 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 flex flex-col items-center text-center"
             >
               <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-3xl mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
                 {icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{label}</h3>
-              <p className="text-sm text-gray-500 mb-4">Track prices from all major stores for {label.toLowerCase()}.</p>
-              <div className="flex items-center gap-2 text-primary font-bold text-sm">
-                Browse All <LuArrowRight className="group-hover:translate-x-2 transition-transform" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{label}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Track prices from all major stores for {label.toLowerCase()}.</p>
+              <div className="mt-auto">
+                <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black text-primary dark:bg-gray-800 dark:text-primary dark:border dark:border-gray-700 font-extrabold text-sm shadow-md group-hover:bg-primary group-hover:text-black transition-all duration-300">
+                  Browse All <LuArrowRight className="group-hover:translate-x-1.5 transition-transform text-base" />
+                </span>
               </div>
             </div>
           ))}
@@ -94,7 +96,7 @@ const ComparePrices = () => {
                 title={label}
               />
             ))}
-            <div className="text-sm font-bold text-gray-400 flex items-center gap-1 cursor-pointer hover:text-black">
+            <div className="text-sm font-bold text-gray-400 flex items-center gap-1 cursor-pointer hover:text-black dark:hover:text-white transition-colors">
               & {moreImg ? "Many More" : "15+ More"} <LuArrowRight />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { query, get } from '../utils/db.js';
+import { computeFreshness } from '../routes/priceRefresh.js';
 
 export const getHomeData = async () => {
   const categories = await query(`SELECT DISTINCT category FROM products_master LIMIT 8`);
@@ -73,7 +74,7 @@ export const searchProducts = async (filters) => {
 
   let sql = `
     SELECT pm.id, COALESCE(pm.canonical_title, pm.title) as title, pm.brand, pm.category, pm.id as slug, pm.base_image, pm.base_image as image_url,
-           MIN(vp.price) as discounted_Price, MIN(vp.price) as discounted_price, MAX(vp.mrp) as mrp, MIN(vp.price) as price, MAX(vp.discount_percent) as discount_percent,
+           MIN(vp.price) as discounted_price, MAX(vp.mrp) as mrp, MIN(vp.price) as price, MAX(vp.discount_percent) as discount_percent,
            COUNT(DISTINCT vp.vendor_id) as vendor_count,
            MAX(vp.rating) as rating, MAX(vp.reviews) as reviews,
            COALESCE(srr.priority_weight, 0) as ranking_weight
@@ -147,13 +148,13 @@ export const searchProducts = async (filters) => {
 
   const rawProducts = await query(sql, params);
   const products = rawProducts.map(p => {
-    const img = p.base_image || p.image_url || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80';
+    const img = p.base_image || p.image_url || null;
     return {
       ...p,
       base_image: img,
       image: img,
       image_url: img,
-      image_urls: [img]
+      image_urls: img ? [img] : []
     };
   });
 
@@ -183,14 +184,14 @@ export const getProductBySlug = async (slug) => {
   }
 
   const ratingData = await get(`
-    SELECT COALESCE(MAX(rating), 4.6) as rating, COALESCE(MAX(reviews), 148) as reviews
+    SELECT MAX(rating) as rating, MAX(reviews) as reviews
     FROM vendor_products vp
     JOIN product_variants pv ON vp.variant_id = pv.id
     WHERE pv.product_id = ?
   `, [product.id]);
 
-  product.rating = ratingData?.rating || 4.6;
-  product.reviews = ratingData?.reviews || 148;
+  product.rating = ratingData?.rating ?? null;
+  product.reviews = ratingData?.reviews ?? null;
   product.review_count = product.reviews;
 
   // Query Vendor Coverage safely
@@ -200,10 +201,10 @@ export const getProductBySlug = async (slug) => {
       try { covData.missing_vendors = JSON.parse(covData.missing_vendors || '[]'); } catch { covData.missing_vendors = []; }
       product.vendor_coverage = covData;
     } else {
-      product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 1, coverage_pct: 20.0, missing_vendors: [] };
+      product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 0, coverage_pct: 0, missing_vendors: [] };
     }
   } catch (e) {
-    product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 1, coverage_pct: 20.0, missing_vendors: [] };
+    product.vendor_coverage = { total_vendors_expected: 5, vendors_found_count: 0, coverage_pct: 0, missing_vendors: [] };
   }
 
   // Dynamically compute zero-trust quality metrics
@@ -221,7 +222,7 @@ export const getProductBySlug = async (slug) => {
     hasValidSpecs = count > 50;
   }
 
-  const vendorsFoundCount = product.vendor_coverage?.vendors_found_count || 1;
+  const vendorsFoundCount = product.vendor_coverage?.vendors_found_count || 0;
   const coverageScore = Math.min(100, vendorsFoundCount * 20);
   const imageScore = product.image_urls.length > 1 ? 100 : (product.image_urls.length === 1 ? 75 : 0);
   const offerScore = vendorsFoundCount > 0 ? 100 : 0;
@@ -251,7 +252,7 @@ export const getProductBySlug = async (slug) => {
 
     const variantVendors = await query(`
       SELECT vp.*, v.name as vendor_name, NULL as vendor_logo,
-             vp.price as discounted_Price, vp.price as discounted_price, vp.price as price, vp.mrp as mrp
+             vp.price as discounted_price, vp.price as price, vp.mrp as mrp
       FROM vendor_products vp
       JOIN vendors v ON vp.vendor_id = v.id
       WHERE vp.variant_id = ?
@@ -276,38 +277,19 @@ export const getProductBySlug = async (slug) => {
       }
 
       const itemPrice = Number(v.discounted_Price || v.price || 0);
-
-      // Compute dynamic EMI tenures if not present in parsedOffers
-      const emiObj = parsedOffers.emi || {};
-      const hasEmi = itemPrice >= 2500 || emiObj.has_emi !== false;
-      const minMonthly = emiObj.min_monthly_emi || (hasEmi ? Math.ceil(itemPrice / 24) : 0);
-
-      const computedTenures = emiObj.tenures || (hasEmi ? [
-        { months: 3, monthly: Math.ceil(itemPrice / 3), total_cost: Math.ceil(itemPrice), interest_rate: 0, is_no_cost: true, bank: "HDFC / ICICI Bank" },
-        { months: 6, monthly: Math.ceil(itemPrice / 6), total_cost: Math.ceil(itemPrice), interest_rate: 0, is_no_cost: true, bank: "SBI / Axis Bank" },
-        { months: 9, monthly: Math.ceil((itemPrice * 1.10) / 9), total_cost: Math.ceil(itemPrice * 1.10), interest_rate: 13.5, is_no_cost: false, bank: "Kotak / OneCard" },
-        { months: 12, monthly: Math.ceil((itemPrice * 1.14) / 12), total_cost: Math.ceil(itemPrice * 1.14), interest_rate: 14.5, is_no_cost: false, bank: "Bajaj Finserv" },
-        { months: 18, monthly: Math.ceil((itemPrice * 1.185) / 18), total_cost: Math.ceil(itemPrice * 1.185), interest_rate: 15.5, is_no_cost: false, bank: "Axis / ICICI Bank" },
-        { months: 24, monthly: Math.ceil((itemPrice * 1.22) / 24), total_cost: Math.ceil(itemPrice * 1.22), interest_rate: 16.0, is_no_cost: false, bank: "SBI / Federal Bank" }
-      ] : []);
-
-      v.offers_detail = {
-        emi: {
-          has_emi: hasEmi,
-          is_no_cost_emi: itemPrice >= 5000 || emiObj.is_no_cost_emi !== false,
-          min_monthly_emi: minMonthly,
-          starting_amount: minMonthly ? `₹${minMonthly.toLocaleString('en-IN')}/month` : null,
-          tenures: computedTenures,
-          eligible_banks: emiObj.eligible_banks || ["HDFC Bank", "ICICI Bank", "SBI Card", "Axis Bank", "Kotak Bank", "Bajaj Finserv", "OneCard", "Federal Bank"]
-        },
-        bank_offers: parsedOffers.bank_offers || [],
-        exchange_offers: parsedOffers.exchange_offers || [],
-        cashback_offers: parsedOffers.cashback_offers || [],
-        coupons: parsedOffers.coupons || [],
-        delivery: v.delivery_days || parsedOffers.delivery || "Free Delivery by Tomorrow",
-        seller: v.seller || parsedOffers.seller || "Authorized Brand Store",
-        stock_status: v.stock_status || parsedOffers.stock_status || "In Stock"
-      };
+      // Commercial offer data is source-backed only. Never synthesize EMI, bank, delivery, seller, or stock data.
+      v.offers_detail = parsedOffers && typeof parsedOffers === 'object' && Object.keys(parsedOffers).length
+        ? {
+            emi: parsedOffers.emi || null,
+            bank_offers: Array.isArray(parsedOffers.bank_offers) ? parsedOffers.bank_offers : [],
+            exchange_offers: Array.isArray(parsedOffers.exchange_offers) ? parsedOffers.exchange_offers : [],
+            cashback_offers: Array.isArray(parsedOffers.cashback_offers) ? parsedOffers.cashback_offers : [],
+            coupons: Array.isArray(parsedOffers.coupons) ? parsedOffers.coupons : [],
+            delivery: v.delivery_days || parsedOffers.delivery || null,
+            seller: v.seller || parsedOffers.seller || null,
+            stock_status: v.stock_status || parsedOffers.stock_status || null
+          }
+        : null;
 
       // Legacy offers array for backward compatibility
       v.offers = parsedOffers.bank_offers
@@ -330,8 +312,24 @@ export const getProductBySlug = async (slug) => {
       v.link = cleanUrl;
       v.affiliatelink = cleanUrl;
 
+      // Price Refresh metadata
+      const currentPrice = v.current_price !== null && v.current_price !== undefined ? v.current_price : v.price;
+      const prevPrice = v.previous_price;
+      const hasChanged = prevPrice !== null && prevPrice !== undefined && prevPrice !== currentPrice;
+      const diff = hasChanged ? (currentPrice - prevPrice) : 0;
+      const pct = hasChanged && prevPrice > 0 ? parseFloat(((diff / prevPrice) * 100).toFixed(1)) : 0;
+      const direction = diff < 0 ? 'down' : (diff > 0 ? 'up' : 'unchanged');
+
+      v.current_price = currentPrice;
+      v.previous_price = prevPrice;
+      v.price_changed = hasChanged;
+      v.price_difference = diff;
+      v.percentage_change = pct;
+      v.direction = direction;
+      v.price_freshness = computeFreshness(v.last_price_check_at, v.price_check_status);
+
       const vendorKey = v.vendor_name.toLowerCase();
-      if (!vendorsMap[vendorKey] || v.discounted_Price < vendorsMap[vendorKey].discounted_Price) {
+      if (!vendorsMap[vendorKey] || (v.discounted_price || v.price) < (vendorsMap[vendorKey].discounted_price || vendorsMap[vendorKey].price)) {
         vendorsMap[vendorKey] = v;
       }
 
@@ -349,6 +347,19 @@ export const getProductBySlug = async (slug) => {
       `, [variant.vendors[0].id]);
     }
   }
+
+  // Unified Product Price History across variants
+  const productPriceHistory = await query(
+    `SELECT ph.id, ph.vendor_product_id, ph.variant_id, ph.vendor_id, ph.price, ph.currency, ph.recorded_at, 
+            ph.source, ph.confidence, ph.change_type, v.name as vendor_name
+     FROM price_history ph
+     JOIN product_variants pv ON ph.variant_id = pv.id
+     JOIN vendors v ON ph.vendor_id = v.id
+     WHERE pv.master_product_id = ? OR pv.product_id = ?
+     ORDER BY ph.recorded_at ASC, ph.id ASC
+     LIMIT 50`,
+    [product.id, product.id]
+  );
 
   const relatedProducts = await query(`
     SELECT pm.id, COALESCE(pm.canonical_title, pm.title) as title, pm.id as slug, pm.base_image, pm.base_image as image_url, 
@@ -371,8 +382,9 @@ export const getProductBySlug = async (slug) => {
     title: product.canonical_title || product.title,
     specifications: allSpecs, // Flattened for frontend Specs.jsx
     vendors: vendorsMap, // Combined from all variants for frontend Prices.jsx
-    vendorOffers: Object.values(vendorsMap).sort((a, b) => Number(a.discounted_Price || a.price || 0) - Number(b.discounted_Price || b.price || 0)),
+    vendorOffers: Object.values(vendorsMap).sort((a, b) => Number(a.discounted_price || a.price || 0) - Number(b.discounted_price || b.price || 0)),
     variants,
+    priceHistory: productPriceHistory,
     relatedProducts: processedRelated
   };
 };
@@ -455,7 +467,8 @@ export const getSearchSuggestions = async (searchQuery) => {
   };
 };
 
-export const getSitemapXml = async (baseUrl = 'http://localhost:5173') => {
+export const getSitemapXml = async (baseUrl) => {
+  if (!baseUrl) throw new Error('PUBLIC_FRONTEND_URL is required to generate sitemap');
   const products = await query(`SELECT id, updated_at FROM products_master ORDER BY id DESC`);
   const categories = await query(`SELECT DISTINCT category FROM products_master WHERE category IS NOT NULL`);
 

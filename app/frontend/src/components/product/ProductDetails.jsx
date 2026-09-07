@@ -8,6 +8,7 @@ import Info from "./Info";
 import Prices from "./Prices";
 import Specs from "./Specs";
 import PriceAlertModal from "./PriceAlertModal";
+import PriceHistorySection from "./PriceHistorySection";
 
 const formatPrice = (p) => (p ? `₹${Number(p).toLocaleString("en-IN")}` : "");
 
@@ -116,14 +117,14 @@ const ProductDetails = () => {
   })();
 
   return (
-    <div className="bg-[#f4f7f9] min-h-screen pt-20 sm:pt-24 pb-24 lg:pb-12 font-['Inter',_sans-serif]">
+    <div className="bg-[#f4f7f9] dark:bg-gray-950 min-h-screen pt-20 sm:pt-24 pb-32 lg:pb-12 font-['Inter',_sans-serif] transition-colors duration-300">
       {product && (
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6">
           {/* 1. TOP SECTION - Heading & Rating */}
           <div className="mb-6 sm:mb-8 animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+              <div className="flex flex-col gap-2 min-w-0">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight break-words">
                   {product.title || product.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
@@ -210,15 +211,18 @@ const ProductDetails = () => {
             </div>
 
           </div>
+
+          {/* Full-width Price History & Tracking Section */}
+          <PriceHistorySection priceHistory={product.priceHistory} currentPrice={lowestPrice} />
         </div>
       )}
 
       {/* Fixed Mobile Bottom CTA Bar */}
       {product && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3 lg:hidden pb-safe">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Lowest Price</span>
-            <span className="text-lg sm:text-xl font-black text-green-600 leading-none">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-4 py-3 shadow-2xl flex items-center justify-between gap-3 lg:hidden pb-safe">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block">Lowest Price</span>
+            <span className="text-lg sm:text-xl font-black text-green-600 dark:text-green-400 leading-none truncate block">
               {lowestPrice > 0 ? `₹${lowestPrice.toLocaleString('en-IN')}` : 'Check Prices'}
             </span>
           </div>

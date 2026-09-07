@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaTag, FaCreditCard, FaBolt, FaChevronRight } from "react-icons/fa";
+import { FaTag, FaCreditCard, FaBolt, FaChevronRight, FaClock, FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { Amazon, Flipkart, Croma, VS } from "../../assets/ImportImages";
 import OffersAndEmiModal from "./OffersAndEmiModal";
 
@@ -103,50 +103,31 @@ const Prices = ({ product }) => {
           const rawName = data.vendor_name || data.vendor || data.name || data.seller || 'Online Store';
           const discountPrice = getDiscountedPrice(data);
           const rawMrp = parsePriceValue(data.mrp);
-          const originalPrice = rawMrp > discountPrice ? rawMrp : discountPrice;
+          const priceVal = discountPrice > 0 ? discountPrice : (rawMrp || parsePriceValue(data.price));
+          const originalPrice = rawMrp > priceVal ? rawMrp : priceVal;
           const variantLabel = data.variant_label || data.storage || data.ram || '';
-          
-          // Construct fallback offers_detail if missing
-          const priceVal = discountPrice > 0 ? discountPrice : originalPrice;
-          const fallbackMinEmi = Math.ceil(priceVal / 24);
-          const defaultOffersDetail = data.offers_detail || {
-            emi: {
-              has_emi: priceVal >= 2500,
-              is_no_cost_emi: priceVal >= 5000,
-              min_monthly_emi: fallbackMinEmi,
-              starting_amount: `₹${fallbackMinEmi.toLocaleString('en-IN')}/month`,
-              tenures: [
-                { months: 3, monthly: Math.ceil(priceVal / 3), total_cost: Math.ceil(priceVal), interest_rate: 0, is_no_cost: true, bank: "HDFC / ICICI Bank" },
-                { months: 6, monthly: Math.ceil(priceVal / 6), total_cost: Math.ceil(priceVal), interest_rate: 0, is_no_cost: true, bank: "SBI / Axis Bank" },
-                { months: 9, monthly: Math.ceil((priceVal * 1.10) / 9), total_cost: Math.ceil(priceVal * 1.10), interest_rate: 13.5, is_no_cost: false, bank: "Kotak Bank" },
-                { months: 12, monthly: Math.ceil((priceVal * 1.14) / 12), total_cost: Math.ceil(priceVal * 1.14), interest_rate: 14.5, is_no_cost: false, bank: "Bajaj Finserv" }
-              ],
-              eligible_banks: ["HDFC Bank", "ICICI Bank", "SBI Card", "Axis Bank", "Kotak Bank", "Bajaj Finserv"]
-            },
-            bank_offers: [
-              { bank: "HDFC Bank", title: "10% Instant Discount up to ₹1,500", code: "HDFC10", description: "Get 10% Instant Discount on HDFC Bank Credit & Debit Cards." },
-              { bank: "ICICI Bank", title: "Flat ₹1,000 Off on ICICI Cards", code: "ICICISAVE", description: "Flat ₹1,000 Instant Discount on ICICI Bank Cards." }
-            ],
-            exchange_offers: [
-              { title: "Up to ₹15,000 Off on Exchange", description: "Get up to ₹15,000 exchange value on your old device + ₹2,000 bonus.", max_discount: 15000 }
-            ],
-            cashback_offers: [
-              { title: "5% Unlimited Cashback", description: "5% Unlimited Cashback on co-branded Credit Cards." }
-            ],
-            coupons: [
-              { title: "EXTRA ₹500 OFF", code: "DD500", description: "Apply coupon DD500 at checkout for extra savings." }
-            ]
-          };
+          const defaultOffersDetail = data.offers_detail || null;
+
+          const priceChanged = Boolean(data.price_changed || (data.previous_price && data.previous_price !== priceVal));
+          const priceDifference = Number(data.price_difference || (data.previous_price ? priceVal - data.previous_price : 0));
+          const direction = data.direction || (priceDifference < 0 ? 'down' : (priceDifference > 0 ? 'up' : 'unchanged'));
 
           return {
             name: String(rawName).charAt(0).toUpperCase() + String(rawName).slice(1),
             variantLabel: variantLabel,
             originalPrice: originalPrice,
             discountPrice: priceVal,
-            rating: parseFloat(data.rating) || 4.5,
+            previousPrice: data.previous_price,
+            priceChanged,
+            priceDifference,
+            direction,
+            freshness: data.price_freshness || null,
+            lastCheckedAt: data.last_price_check_at,
+            rating: data.rating != null && Number(data.rating) > 0 ? parseFloat(data.rating) : null,
             offers: cleanOffersArray(data.offers),
             offersDetail: defaultOffersDetail,
-            link: resolveLink(data)
+            link: resolveLink(data),
+            stock_status: data.stock_status || data.stockStatus || null
           };
         });
 
@@ -168,34 +149,17 @@ const Prices = ({ product }) => {
         .map(([name, data]) => {
           const discountPrice = getDiscountedPrice(data);
           const priceVal = discountPrice > 0 ? discountPrice : parsePriceValue(data.price);
-          const fallbackMinEmi = Math.ceil(priceVal / 24);
-          const defaultOffersDetail = data.offers_detail || {
-            emi: {
-              has_emi: true,
-              is_no_cost_emi: true,
-              min_monthly_emi: fallbackMinEmi,
-              starting_amount: `₹${fallbackMinEmi.toLocaleString('en-IN')}/month`,
-              tenures: [
-                { months: 3, monthly: Math.ceil(priceVal / 3), total_cost: Math.ceil(priceVal), interest_rate: 0, is_no_cost: true, bank: "HDFC / ICICI Bank" },
-                { months: 6, monthly: Math.ceil(priceVal / 6), total_cost: Math.ceil(priceVal), interest_rate: 0, is_no_cost: true, bank: "SBI / Axis Bank" },
-                { months: 12, monthly: Math.ceil((priceVal * 1.14) / 12), total_cost: Math.ceil(priceVal * 1.14), interest_rate: 14.5, is_no_cost: false, bank: "Bajaj Finserv" }
-              ],
-              eligible_banks: ["HDFC Bank", "ICICI Bank", "SBI Card", "Axis Bank", "Kotak Bank", "Bajaj Finserv"]
-            },
-            bank_offers: [{ bank: "HDFC Bank", title: "10% Instant Discount", code: "HDFC10" }],
-            exchange_offers: [{ title: "Up to ₹15,000 Off on Exchange" }],
-            cashback_offers: [{ title: "5% Unlimited Cashback" }],
-            coupons: [{ title: "EXTRA ₹500 OFF", code: "DD500" }]
-          };
+          const defaultOffersDetail = data.offers_detail || null;
 
           return {
             name: name.charAt(0).toUpperCase() + name.slice(1),
             originalPrice: parsePriceValue(data.price),
             discountPrice: priceVal,
-            rating: parseFloat(data.rating) || 4.5,
+            rating: data.rating != null && Number(data.rating) > 0 ? parseFloat(data.rating) : null,
             offers: cleanOffersArray(data.offers),
             offersDetail: defaultOffersDetail,
-            link: resolveLink(data)
+            link: resolveLink(data),
+            stock_status: data.stock_status || data.stockStatus || null
           };
         });
       return { vendors: vendorsArray };
@@ -261,7 +225,7 @@ const Prices = ({ product }) => {
                     <h3 className="font-extrabold text-gray-900 leading-tight text-base">{vendor.name}</h3>
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <span className="text-[10px] font-bold text-green-700 bg-green-100/80 px-1.5 py-0.5 rounded flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span> In Stock
+                        {vendor.stock_status ? <><span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span> {vendor.stock_status}</> : <span>Availability not provided</span>}
                       </span>
                       {vendor.variantLabel && (
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
@@ -301,15 +265,25 @@ const Prices = ({ product }) => {
                 </div>
 
                 {/* Price and CTA */}
-                <div className="flex items-end justify-between mt-3 pt-3 border-t border-gray-100">
-                  <div className="space-y-0.5">
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-2xl font-black tracking-tight ${isBest ? 'text-green-600' : 'text-gray-900'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mt-3 pt-3 border-t border-gray-100">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className={`text-xl sm:text-2xl font-black tracking-tight ${isBest ? 'text-green-600' : 'text-gray-900'}`}>
                         ₹{(vendor.discountPrice || vendor.originalPrice || 0).toLocaleString('en-IN')}
                       </span>
                       {discountPercent > 0 && (
                         <span className="text-xs font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded">
                           {discountPercent}% OFF
+                        </span>
+                      )}
+                      {vendor.priceChanged && vendor.direction === 'down' && (
+                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <FaArrowDown size={9} /> ₹{Math.abs(vendor.priceDifference).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                      {vendor.priceChanged && vendor.direction === 'up' && (
+                        <span className="text-xs font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <FaArrowUp size={9} /> ₹{Math.abs(vendor.priceDifference).toLocaleString('en-IN')}
                         </span>
                       )}
                     </div>
@@ -318,15 +292,20 @@ const Prices = ({ product }) => {
                         MRP ₹{vendor.originalPrice.toLocaleString('en-IN')}
                       </div>
                     )}
+                    {/* Freshness Indicator */}
+                    <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium pt-1">
+                      <FaClock size={10} className="text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{vendor.freshness?.label || (vendor.lastCheckedAt ? `Checked ${new Date(vendor.lastCheckedAt).toLocaleDateString('en-IN')}` : 'Price check pending')}</span>
+                    </div>
                   </div>
                   
-                  <div className="flex flex-col gap-1.5 items-end">
+                  <div className="flex items-center justify-end w-full sm:w-auto">
                     {vendor.link && (
                       <a
                         href={vendor.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`px-5 py-2 rounded-xl font-extrabold text-xs transition-all shadow-sm active:scale-95 flex items-center gap-1 ${
+                        className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1 min-touch-target ${
                           isBest 
                             ? 'bg-green-500 text-white hover:bg-green-600 shadow-green-200' 
                             : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
